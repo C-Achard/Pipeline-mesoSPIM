@@ -1,0 +1,83 @@
+[project]
+name = "mesoSPIM pipeline"
+readme = "README.md"
+description = "Datajoint pipeline for mesoSPIM data"
+requires-python = ">=3.8"
+#dependencies = [
+#    "datajoint",
+#    "brainreg",
+#]
+
+[tool.ruff]
+select = [
+    "E", "F", "W",
+    "A",
+    "B",
+    "D",
+    "G",
+    "I",
+    "PT",
+    "PTH",
+    "RET",
+    "SIM",
+    "TCH",
+    "NPY",
+]
+fixable = ["ALL"]
+# Never enforce `E501` (line length violations) and 'E741' (ambiguous variable names)
+# and 'E402' (module level import not at top of file)
+# and 'G004' (do not use f-strings in logging)
+# and 'A003' (Shadowing python builtins)
+# and 'D100' (Missing docstring in public module)
+# and 'D101' (Missing docstring in public class)
+# and 'D104' (Missing docstring in public package)
+ignore = ["E402", "E501", "E741", "G004", "A003", "D100", "D101", "D104"]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "docs/conf.py",
+    "meso_spim/docs/_build",
+    "OLD_meso_spim/",
+]
+# Assume Python 3.8
+target-version = "py38"
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+#[project.optional-dependencies]
+#dev = [
+#    "isort",
+#    "black",
+#    "ruff",
+#    "pre-commit",
+#]
+#docs = [
+#    "jupyter-book",
+#]

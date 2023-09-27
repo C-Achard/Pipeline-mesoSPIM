@@ -1,0 +1,47 @@
+{
+  "device": "cpu",
+  "model_info": {
+    "name": "VNet",
+    "model_input_size": 128
+  },
+  "weights_config": {
+    "path": null,
+    "custom": false,
+    "use_pretrained": true
+  },
+  "results_path": "C:\\Users\\Cyril\\Desktop\\test\\test",
+  "filetype": ".tif",
+  "keep_on_cpu": false,
+  "compute_stats": false,
+  "post_process_config": {
+    "zoom": {
+      "enabled": true,
+      "zoom_values": [0.3,1,1]
+    },
+    "thresholding": {
+      "enabled": true,
+      "threshold_value": 0.8
+    },
+    "instance": {
+      "enabled": false,
+      "method": "Watershed",
+      "threshold": {
+        "enabled": true,
+        "threshold_value": 0.9
+      },
+      "small_object_removal_threshold": {
+        "enabled": true,
+        "threshold_value": 10
+      }
+    }
+  },
+  "sliding_window_config": {
+    "window_size": 128,
+    "window_overlap": 0.45
+  },
+  "run_semantic_evaluation": false,
+  "run_instance_evaluation": false,
+  "compute_instance_boundaries": false,
+  "keep_boundary_predictions": false,
+  "image": null
+}

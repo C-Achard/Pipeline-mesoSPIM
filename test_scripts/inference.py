@@ -1,3 +1,4 @@
+from functools import partial
 from pathlib import Path
 from typing import List
 
@@ -28,6 +29,10 @@ CONFIG = InferenceWorkerConfig(
     sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, 0.25),
 )
 
+###### INSTANCE SEGMENTATION ######
+SPOT_SIGMA = 0.7
+OUTLINE_SIGMA = 0.7
+
 
 def inference_on_images(
     images: List[str], config: InferenceWorkerConfig = CONFIG
@@ -47,8 +52,15 @@ def inference_on_images(
     config.post_process_config.instance = InstanceSegConfig(
         enabled=True,
         method=InstanceSegmentationWrapper(
-            method=voronoi_otsu,
-            parameters={"spot_sigma": 0.7, "outline_sigma": 0.7},
+            method=partial(
+                voronoi_otsu,
+                spot_sigma=SPOT_SIGMA,
+                outline_sigma=OUTLINE_SIGMA,
+            ),
+            parameters={
+                "spot_sigma": SPOT_SIGMA,
+                "outline_sigma": OUTLINE_SIGMA,
+            },
         ),
     )
 

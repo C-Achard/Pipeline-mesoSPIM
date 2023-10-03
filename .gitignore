@@ -155,3 +155,5 @@ cython_debug/
 /OLD_meso_spim/docs/_build/
 /.ruff_cache/
 /test_images/
+*.tif
+src/napari-cellseg3d/

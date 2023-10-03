@@ -1,19 +1,16 @@
-import logging
 from pathlib import Path
 from typing import List
 
 import torch
+from cellseg_utils import InstanceSegmentationWrapper, LogFixture
+from napari_cellseg3d.code_models.instance_segmentation import voronoi_otsu
 from napari_cellseg3d.code_models.worker_inference import InferenceWorker
 from napari_cellseg3d.config import (
     InferenceWorkerConfig,
+    InstanceSegConfig,
     ModelInfo,
     SlidingWindowConfig,
 )
-from napari_cellseg3d.utils import LOGGER as logger
-
-############################################
-logger.setLevel(logging.DEBUG)
-############################################
 
 WINDOW_SIZE = 64
 
@@ -28,7 +25,7 @@ CONFIG = InferenceWorkerConfig(
     results_path=str(Path("./results").absolute()),
     compute_stats=True,
     # post_process_config=
-    sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, 0.3),
+    sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, 0.25),
 )
 
 
@@ -41,18 +38,32 @@ def inference_on_images(
         images (List[str]): List of image filepaths
         config (InferenceWorkerConfig, optional): Config for InferenceWorker. Defaults to CONFIG, see above.
     """
+    # instance_method = InstanceSegmentationWrapper(voronoi_otsu, {"spot_sigma": 0.7, "outline_sigma": 0.7})
+
     config.post_process_config.zoom.enabled = False
-    config.post_process_config.thresholding.enabled = False
+    config.post_process_config.thresholding.enabled = (
+        False  # will need to be enabled and set to 0.5 for the test images
+    )
+    config.post_process_config.instance = InstanceSegConfig(
+        enabled=True,
+        method=InstanceSegmentationWrapper(
+            method=voronoi_otsu,
+            parameters={"spot_sigma": 0.7, "outline_sigma": 0.7},
+        ),
+    )
 
     config.images_filepaths = images
     for im in config.images_filepaths:
         assert Path(im).exists(), f"Image {im} does not exist"
         print(f"Image : {im}")
 
+    log = LogFixture()
     worker = InferenceWorker(config)
     print(f"Worker config: {worker.config}")
-    worker._use_thread_logging = False
-    assert not worker._use_thread_logging, "Thread logging should be False"
+
+    worker.log_signal.connect(log.print_and_log)
+    worker.warn_signal.connect(log.warn)
+    worker.error_signal.connect(log.error)
 
     worker.log_parameters()
 
@@ -68,10 +79,4 @@ if __name__ == "__main__":
     images = sorted(Path.glob(Path("./test_images").resolve(), "*.tif"))
 
     results = inference_on_images(images)
-
-    for result in results:
-        [
-            print(f"{attr}: {getattr(result, attr)}")
-            for attr in dir(result)
-            if not attr.startswith("__")
-        ]
+    # see InferenceResult for more info on results so you can populate tables from them

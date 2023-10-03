@@ -154,3 +154,4 @@ cython_debug/
 # buit docs
 /OLD_meso_spim/docs/_build/
 /.ruff_cache/
+/test_images/

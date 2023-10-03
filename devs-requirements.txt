@@ -1,3 +1,4 @@
 pre-commit
 jupyter-book
 dataclasses-json
+git+https://github.com/AdaptiveMotorControlLab/CellSeg3d@cy/jupyter-books-docs

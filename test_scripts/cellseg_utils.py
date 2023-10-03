@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from napari_cellseg3d.code_models.instance_segmentation import InstanceMethod
 from napari_cellseg3d.utils import LOGGER as logger
 
 ############################################
@@ -14,6 +15,13 @@ class InstanceSegmentationWrapper:
 
         The InstanceMethod class from cellseg3d cannot be used as it is meant to provide Qt widgets for the GUI.
         Since we are not within a QApplication, we cannot use it.
+        This class is meant to mimic the InstanceMethod class, but without the Qt widgets.
+        Name and recorded_parameters are not strictly necessary, but are used to mimic the InstanceMethod class.
+
+        Args:
+            method: method to use for instance segmentation. USE A PARTIAL FUNCTION WITH THE PARAMETERS SET.
+            parameters: parameters to use for method
+            name: name of method
         """
         self.method = method
         self.recorded_parameters = parameters
@@ -21,11 +29,9 @@ class InstanceSegmentationWrapper:
 
     def run_method_from_params(self, image):
         """Runs the method with the RECORDED parameters set in the widget."""
-        params = [
-            self.recorded_parameters[key] for key in self.recorded_parameters
-        ]
-        result = self.method(image, *params)
-        return np.array(result)
+        return InstanceMethod.sliding_window(
+            volume=image, function=self.method
+        )
 
     def _make_list_from_channels(self, image):
         """Makes a list of images from the channels of the input image."""
@@ -44,7 +50,7 @@ class InstanceSegmentationWrapper:
         return [image]
 
     def run_method_on_channels_from_params(self, image):
-        """Runs the method on each channel of the image with the RECORDED parameters set in the widget.
+        """Runs the method on each channel of the image with the parameters set in the widget.
 
         Args:
             image: image data to run method on
@@ -59,7 +65,10 @@ class InstanceSegmentationWrapper:
 
 
 class LogFixture:
-    """Fixture for napari-less logging, replaces napari_cellseg3d.interface.Log in model_workers."""
+    """Fixture for napari-less logging, replaces napari_cellseg3d.interface.Log in model_workers.
+
+    This allows to redirect the output of the workers to stdout instead of a specialized widget.
+    """
 
     def __init__(self):
         """Creates a LogFixture object."""

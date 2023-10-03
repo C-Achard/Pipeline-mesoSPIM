@@ -80,3 +80,4 @@ if __name__ == "__main__":
 
     results = inference_on_images(images)
     # see InferenceResult for more info on results so you can populate tables from them
+    # note that the csv with stats is not saved by default, you need to retrieve it from the results

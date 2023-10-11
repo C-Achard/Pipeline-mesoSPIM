@@ -7,6 +7,7 @@ from pathlib import Path
 import datajoint as dj
 import numpy as np
 import scripts.brainreg_utils as brg_utils
+import scripts.run_brainreg as run_brg
 from cellseg3dmodule.config import InferenceWorkerConfig
 from cellseg3dmodule.predict import Inference
 from cellseg3dmodule.utils import volume_stats, zoom_factor
@@ -95,20 +96,18 @@ class BrainRegistration(dj.Computed):
         """Runs brainreg on the autofluo scan."""
         autofluo_scan_path = (Scan() & key).fetch1("autofluo_path")
 
-        brainreg_data: brg_utils.BrainregParams = open_brainreg_window(
-            autofluo_scan_path
-        )  # has to be removed/modified to use command line brainreg
+        brainreg_data = run_brg.registration()
 
-        key["registration_path"] = brainreg_data.path
+        key["registration_path"] = brainreg_data.niftyreg_directory
         key["atlas"] = brainreg_data.atlas
         key["voxel_size_x"] = brainreg_data.voxel_size_x
         key["voxel_size_y"] = brainreg_data.voxel_size_y
-        key["voxel_size_z"] = brainreg_data.voxel_size_z
+        key["voxel_size_z"] = brainreg_data.voxel_size_z  # A DISCUTER
         key["orientation"] = brainreg_data.orientation
         self.insert1(key)
 
         rois = (Scan() & key).fetch1("regions_of_interest_ids")
-        brainreg_labels_path = Path(brainreg_data.path) / Path(
+        brainreg_labels_path = Path(brainreg_data.output_directory) / Path(
             "registered_atlas.tiff"
         )
 
@@ -124,9 +123,7 @@ class BrainRegistration(dj.Computed):
         mouse_name = (Scan() & key).fetch1("mouse_name")
 
         for roi in rois:
-            roi_name = brg_utils.get_atlas_region_name_from_id(
-                roi, brainreg_data.atlas
-            )
+            roi_name = brg_utils.get_atlas_region_name_from_id(roi, atlas)
             roi_name = brg_utils.format_roi_name_to_path(roi_name)
 
             folder = Path(autofluo_scan_path).parent / Path(f"{roi_name}")
@@ -136,7 +133,7 @@ class BrainRegistration(dj.Computed):
                 f"{roi}_cropped_{brg_utils.get_date_time()}.tif"
             )
 
-            brg_utils.get_atlas_orientation(brainreg_data.atlas)
+            brg_utils.get_atlas_orientation(atlas)
             # logger.info(f"Re-orienting cropped ROI to atlas standard : {standard_orientation}")
             # brg_utils.reorient_volume(split_volumes[str(roi)], brainreg_data.orientation, standard_orientation)
             logger.info(f"Saving ROI volume {volume_path}")

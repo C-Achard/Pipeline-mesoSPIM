@@ -54,6 +54,7 @@ def test_populate():
 
     logger.info(test_brainreg)
 
+    """
     test_semantic = spim.SemanticSegmentation()  # semantic
     test_semantic.populate()
 
@@ -75,6 +76,7 @@ def test_populate():
     test_report.populate()
 
     logger.info(test_report)
+    """
 
 
 if __name__ == "__main__":

@@ -14,7 +14,8 @@ from cellseg3dmodule.utils import volume_stats, zoom_factor
 from schema import user
 from schema.utils.path_dataclass import PathConfig
 from scripts import generate_report
-from scripts.napari_brainreg_ui import open_brainreg_window
+
+# from scripts.napari_brainreg_ui import open_brainreg_window
 from tifffile import imread, imwrite
 
 # logging.basicConfig(level=logging.INFO)

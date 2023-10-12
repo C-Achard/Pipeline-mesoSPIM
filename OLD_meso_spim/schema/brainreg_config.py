@@ -2,7 +2,6 @@ import json
 import os
 
 dictionary = {
-    "input_directory": "path/to/brain",
     "output_directory": os.getcwd(),
     "additional_images": [],
     "atlas": "allen_mouse_25_um",
@@ -26,7 +25,7 @@ dictionary = {
     "histogram_n_bins_reference": 128,
 }
 
-json_object = json.dumps(dictionary, indent=22)
+json_object = json.dumps(dictionary, indent=21)
 
 # Writing to sample.json
 with open("brainreg_config.json", "w") as outfile:

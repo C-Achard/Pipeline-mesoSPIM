@@ -96,7 +96,7 @@ class BrainRegistration(dj.Computed):
         """Runs brainreg on the autofluo scan."""
         autofluo_scan_path = (Scan() & key).fetch1("autofluo_path")
 
-        brainreg_data = run_brg.registration()
+        brainreg_data = run_brg.registration(autofluo_scan_path)
 
         key["registration_path"] = brainreg_data.niftyreg_directory
         key["atlas"] = brainreg_data.atlas

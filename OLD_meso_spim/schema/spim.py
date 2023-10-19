@@ -8,6 +8,7 @@ import datajoint as dj
 import numpy as np
 import scripts.brainreg_utils as brg_utils
 import scripts.run_brainreg as run_brg
+import scripts.rois_brainreg as rois_brg
 from cellseg3dmodule.config import InferenceWorkerConfig
 from cellseg3dmodule.predict import Inference
 from cellseg3dmodule.utils import volume_stats, zoom_factor

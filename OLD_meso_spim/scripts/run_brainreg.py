@@ -7,6 +7,9 @@ import numpy as np
 from pathlib import Path
 from brainreg.paths import Paths
 from bg_atlasapi import BrainGlobeAtlas
+from scipy.ndimage import gaussian_filter
+from skimage import morphology
+from tqdm import trange
 from brainglobe_utils.general.system import ensure_directory_exists
 from brainglobe_utils.general.system import get_num_processes
 from brainreg.exceptions import LoadFileException, path_is_folder_with_one_tiff
@@ -15,11 +18,14 @@ from brainreg.utils.volume import calculate_volumes
 from brainglobe_utils.general.system import delete_directory_contents
 from brainglobe_utils.image.scale import scale_and_convert_to_16_bits
 from brainreg.backend.niftyreg.paths import NiftyRegPaths
+from brainreg.backend.niftyreg.parameters import RegistrationParams
 from brainreg.backend.niftyreg.registration import BrainRegistration
 from brainreg.backend.niftyreg.utils import save_nii
 from brainreg.utils import preprocess
 
 """
+
+
 
 """
 
@@ -125,7 +131,7 @@ def registration_preparation(
         raise LoadFileException(None, error) from None
 
     target_brain = bg.map_stack_to(
-        orientation, atlas.metadata["orientation"], input_directory
+        orientation, atlas.metadata["orientation"], target_brain
     )
     return (
         additional_images_downsample,
@@ -212,7 +218,7 @@ def registration(autofluo_scan_path):
         paths.downsampled_brain_path,
     )
 
-    target_brain = preprocess.filter_image(target_brain, preprocessing)
+    target_brain = filtering(target_brain, preprocessing)
     save_nii(
         target_brain, atlas.resolution, niftyreg_paths.downsampled_filtered
     )
@@ -267,7 +273,7 @@ def registration(autofluo_scan_path):
         paths.registered_atlas,
     )
 
-    if save_original_orientation:
+    if save_orientation:
         registered_atlas = imio.load_any(
             niftyreg_paths.registered_atlas_path
         ).astype(np.uint32, copy=False)

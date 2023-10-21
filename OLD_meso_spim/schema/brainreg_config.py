@@ -19,8 +19,8 @@ dictionary = {
     "freeform_use_n_steps": 1,
     "bending_energy_weight": 0.95,
     "grid_spacing": 5,
-    "smoothing_sigma_reference": -1.0,
-    "smoothing_sigma_floating": -1.0,
+    "smoothing_sigma_reference": 1.0,
+    "smoothing_sigma_floating": 1.0,
     "histogram_n_bins_floating": 128,
     "histogram_n_bins_reference": 128,
 }

@@ -6,6 +6,7 @@ import torch
 from cellseg_utils import InstanceSegmentationWrapper, LogFixture
 from napari_cellseg3d.code_models.instance_segmentation import voronoi_otsu
 from napari_cellseg3d.code_models.worker_inference import InferenceWorker
+from napari_cellseg3d.code_models.worker_utils import InferenceResult
 from napari_cellseg3d.config import (
     InferenceWorkerConfig,
     InstanceSegConfig,
@@ -14,6 +15,7 @@ from napari_cellseg3d.config import (
 )
 
 WINDOW_SIZE = 64
+WINDOW_OVERLAP = 0.25
 
 MODEL_INFO = ModelInfo(
     name="SegResNet",
@@ -21,12 +23,12 @@ MODEL_INFO = ModelInfo(
 )
 
 CONFIG = InferenceWorkerConfig(
-    device="cuda" if torch.cuda.is_available() else "cpu",
-    model_info=MODEL_INFO,
+    device="cuda" if torch.cuda.is_available() else "cpu", # no config
+    model_info=MODEL_INFO, # no config 
     results_path=str(Path("./results").absolute()),
-    compute_stats=True,
+    compute_stats=True, # no config
     # post_process_config=
-    sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, 0.25),
+    sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, WINDOW_OVERLAP), # no config, above
 )
 
 ###### INSTANCE SEGMENTATION ######
@@ -36,7 +38,7 @@ OUTLINE_SIGMA = 0.7
 
 def inference_on_images(
     images: List[str], config: InferenceWorkerConfig = CONFIG
-):
+) -> List[InferenceResult]:
     """This functons provides inference on a list of images with minimal config.
 
     Args:

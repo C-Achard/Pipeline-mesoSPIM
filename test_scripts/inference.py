@@ -1,3 +1,6 @@
+# !git clone https://github.com/AdaptiveMotorControlLab/CellSeg3d.git --branch cy/jupyter-books-docs --single-branch ./CellSeg3D
+# !pip install -e CellSeg3D
+
 from functools import partial
 from pathlib import Path
 from typing import List

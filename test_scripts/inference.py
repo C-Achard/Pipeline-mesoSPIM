@@ -1,21 +1,23 @@
+# !git clone https://github.com/AdaptiveMotorControlLab/CellSeg3d.git --branch cy/jupyter-books-docs --single-branch ./CellSeg3D
+# !pip install -e CellSeg3D
+
 from functools import partial
 from pathlib import Path
 from typing import List
-
+import numpy as np
 import torch
 from cellseg_utils import InstanceSegmentationWrapper, LogFixture
 from napari_cellseg3d.code_models.instance_segmentation import voronoi_otsu
 from napari_cellseg3d.code_models.worker_inference import InferenceWorker
-from napari_cellseg3d.code_models.worker_utils import InferenceResult
 from napari_cellseg3d.config import (
     InferenceWorkerConfig,
     InstanceSegConfig,
     ModelInfo,
     SlidingWindowConfig,
 )
+import tifffile as tiff
 
 WINDOW_SIZE = 64
-WINDOW_OVERLAP = 0.25
 
 MODEL_INFO = ModelInfo(
     name="SegResNet",
@@ -23,12 +25,12 @@ MODEL_INFO = ModelInfo(
 )
 
 CONFIG = InferenceWorkerConfig(
-    device="cuda" if torch.cuda.is_available() else "cpu", # no config
-    model_info=MODEL_INFO, # no config 
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    model_info=MODEL_INFO,
     results_path=str(Path("./results").absolute()),
-    compute_stats=True, # no config
+    compute_stats=True,
     # post_process_config=
-    sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, WINDOW_OVERLAP), # no config, above
+    sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, 0.25),
 )
 
 ###### INSTANCE SEGMENTATION ######
@@ -37,12 +39,12 @@ OUTLINE_SIGMA = 0.7
 
 
 def inference_on_images(
-    images: List[str], config: InferenceWorkerConfig = CONFIG
-) -> List[InferenceResult]:
-    """This functons provides inference on a list of images with minimal config.
+    image: np.array, config: InferenceWorkerConfig = CONFIG
+):
+    """This function provides inference on an image with minimal config.
 
     Args:
-        images (List[str]): List of image filepaths
+        image (np.array): Image to perform inference on.
         config (InferenceWorkerConfig, optional): Config for InferenceWorker. Defaults to CONFIG, see above.
     """
     # instance_method = InstanceSegmentationWrapper(voronoi_otsu, {"spot_sigma": 0.7, "outline_sigma": 0.7})
@@ -66,11 +68,8 @@ def inference_on_images(
         ),
     )
 
-    config.images_filepaths = images
-    for im in config.images_filepaths:
-        assert Path(im).exists(), f"Image {im} does not exist"
-        print(f"Image : {im}")
-
+    config.layer = image
+    
     log = LogFixture()
     worker = InferenceWorker(config)
     print(f"Worker config: {worker.config}")
@@ -90,8 +89,7 @@ def inference_on_images(
 
 
 if __name__ == "__main__":
-    images = sorted(Path.glob(Path("./test_images").resolve(), "*.tif"))
-
-    results = inference_on_images(images)
+    image= np.random.rand(64, 64, 64)
+    results = inference_on_images(image)
     # see InferenceResult for more info on results so you can populate tables from them
     # note that the csv with stats is not saved by default, you need to retrieve it from the results

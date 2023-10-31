@@ -30,7 +30,7 @@ class InstanceSegmentationWrapper:
     def run_method_from_params(self, image):
         """Runs the method with the RECORDED parameters set in the widget."""
         return InstanceMethod.sliding_window(
-            volume=image, function=self.method
+            volume=image, func=self.method
         )
 
     def _make_list_from_channels(self, image):

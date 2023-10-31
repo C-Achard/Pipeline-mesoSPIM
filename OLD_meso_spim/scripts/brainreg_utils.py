@@ -8,7 +8,6 @@ from typing import List
 import bg_space as bgs
 import numpy as np
 from bg_atlasapi import BrainGlobeAtlas
-from cellseg3dmodule.config import load_json_config
 from dask.array.image import imread as dask_imread
 from dataclasses_json import dataclass_json
 from scipy.ndimage import find_objects, label
@@ -17,6 +16,13 @@ from tifffile import imread as tif_imread
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
+
+
+def load_json_config(path):
+    logger.info(f"Loading json config: {path}")
+    f = open(path)
+    data = json.load(f)
+    return data
 
 
 def get_date_time():

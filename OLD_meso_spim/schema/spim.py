@@ -108,43 +108,6 @@ class BrainRegistration(dj.Computed):
         key["orientation"] = brainreg_data.orientation
         self.insert1(key)
 
-        rois = (Scan() & key).fetch1("regions_of_interest_ids")
-        brainreg_labels_path = Path(brainreg_data.output_directory) / Path(
-            "registered_atlas.tiff"
-        )
-
-        split_volumes = brg_utils.prepare_roi_cfos(
-            roi_ids=rois,
-            cfos_scan_path=str(autofluo_scan_path),
-            brainreg_labels_path=str(brainreg_labels_path),
-            original_orientation=brainreg_data.orientation,
-            atlas=brainreg_data.atlas,
-        )
-
-        attempt = (Scan() & key).fetch1("attempt")
-        mouse_name = (Scan() & key).fetch1("mouse_name")
-
-        for roi in rois:
-            roi_name = brg_utils.get_atlas_region_name_from_id(roi, atlas)
-            roi_name = brg_utils.format_roi_name_to_path(roi_name)
-
-            folder = Path(autofluo_scan_path).parent / Path(f"{roi_name}")
-            folder.mkdir(parents=True, exist_ok=True)
-
-            volume_path = folder / Path(
-                f"{roi}_cropped_{brg_utils.get_date_time()}.tif"
-            )
-
-            brg_utils.get_atlas_orientation(atlas)
-            # logger.info(f"Re-orienting cropped ROI to atlas standard : {standard_orientation}")
-            # brg_utils.reorient_volume(split_volumes[str(roi)], brainreg_data.orientation, standard_orientation)
-            logger.info(f"Saving ROI volume {volume_path}")
-            imwrite(volume_path, split_volumes[str(roi)])
-
-            results_dict = [mouse_name, attempt, int(roi), str(volume_path)]
-            logger.debug(f"brainreg label processing results : {results_dict}")
-            BrainRegistration.ROI.insert1(results_dict)
-
 
 @schema
 class SemanticSegmentation(dj.Computed):

@@ -38,13 +38,6 @@ WEIGHTS_PATH = Path(__file__).parent.resolve() / Path("models/pretrained")
 logger = logging.getLogger(__name__)
 
 
-def load_json_config(path):
-    logger.info(f"Loading json config: {path}")
-    f = open(path)
-    data = json.load(f)
-    return data
-
-
 @dataclass_json
 @dataclass
 class ModelInfo:

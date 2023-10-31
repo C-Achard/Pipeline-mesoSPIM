@@ -8,16 +8,17 @@ import scripts.brainreg_utils as brg_utils
 from pathlib import Path
 from bg_atlasapi import BrainGlobeAtlas
 from skimage.measure import label
+from dataclasses import dataclass
 
 
+@dataclass
 class Coordinates:
-    def __init__(self, xmin, xmax, ymin, ymax, zmin, zmax):
-        self.xmin = xmin
-        self.xmax = xmax
-        self.ymin = ymin
-        self.ymax = ymax
-        self.zmin = zmin
-        self.zmax = zmax
+    xmin: int
+    xmax: int
+    ymin: int
+    ymax: int
+    zmin: int
+    zmax: int
 
 
 class BrainRegions:

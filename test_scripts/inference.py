@@ -1,7 +1,7 @@
 from functools import partial
 from pathlib import Path
 from typing import List
-
+import numpy as np
 import torch
 from cellseg_utils import InstanceSegmentationWrapper, LogFixture
 from napari_cellseg3d.code_models.instance_segmentation import voronoi_otsu
@@ -12,6 +12,7 @@ from napari_cellseg3d.config import (
     ModelInfo,
     SlidingWindowConfig,
 )
+import tifffile as tiff
 
 WINDOW_SIZE = 64
 
@@ -35,12 +36,12 @@ OUTLINE_SIGMA = 0.7
 
 
 def inference_on_images(
-    images: List[str], config: InferenceWorkerConfig = CONFIG
+    image: np.array, config: InferenceWorkerConfig = CONFIG
 ):
-    """This functons provides inference on a list of images with minimal config.
+    """This function provides inference on an image with minimal config.
 
     Args:
-        images (List[str]): List of image filepaths
+        image (np.array): Image to perform inference on.
         config (InferenceWorkerConfig, optional): Config for InferenceWorker. Defaults to CONFIG, see above.
     """
     # instance_method = InstanceSegmentationWrapper(voronoi_otsu, {"spot_sigma": 0.7, "outline_sigma": 0.7})
@@ -64,11 +65,8 @@ def inference_on_images(
         ),
     )
 
-    config.images_filepaths = images
-    for im in config.images_filepaths:
-        assert Path(im).exists(), f"Image {im} does not exist"
-        print(f"Image : {im}")
-
+    config.layer = image
+    
     log = LogFixture()
     worker = InferenceWorker(config)
     print(f"Worker config: {worker.config}")
@@ -88,8 +86,7 @@ def inference_on_images(
 
 
 if __name__ == "__main__":
-    images = sorted(Path.glob(Path("./test_images").resolve(), "*.tif"))
-
-    results = inference_on_images(images)
+    image= np.random.rand(64, 64, 64)
+    results = inference_on_images(image)
     # see InferenceResult for more info on results so you can populate tables from them
     # note that the csv with stats is not saved by default, you need to retrieve it from the results

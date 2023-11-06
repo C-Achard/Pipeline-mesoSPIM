@@ -24,13 +24,21 @@ from brainreg.backend.niftyreg.utils import save_nii
 from brainreg.utils import preprocess
 
 """
-
-
-
+File for automated brain registration based on brainreg
 """
 
 
 class Brainreg_data:
+    """
+    Class storing relevant data resulting from brain registration necessary to datajoint
+    output_directory: directory stroring result files form brain registration
+    atlas: atlas name
+    voxel_size_x: voxel size in x
+    voxel_size_y: voxel size in y
+    voxel_size_z: voxel size in z
+    orientation: orientation of the brain accroding to brainreg sepecification
+    """
+
     def __init__(self, output_directory, atlas, voxel_sizes, orientation):
         self.output_directory = output_directory
         self.atlas = atlas
@@ -41,6 +49,9 @@ class Brainreg_data:
 
 
 def crop_atlas(atlas, brain_geometry):
+    """
+    brainreg function
+    """
     atlas_cropped = BrainGlobeAtlas(atlas.atlas_name)
     if brain_geometry == "hemisphere_l":
         ind = atlas_cropped.right_hemisphere_value
@@ -54,6 +65,9 @@ def crop_atlas(atlas, brain_geometry):
 
 
 def filtering(brain, preprocessing=None):
+    """
+    brainreg function
+    """
     brain = brain.astype(np.float64, copy=False)
     if preprocessing and preprocessing == "skip":
         pass
@@ -65,12 +79,18 @@ def filtering(brain, preprocessing=None):
 
 
 def read_brainreg_json_file():
+    """
+    Read the json file storing parameters for the brain registration
+    """
     with open("../schema/brainreg_config.json", "r") as openfile:
         json_object = json.load(openfile)
     return json_object
 
 
 def additional_images_preparation(additional_images):
+    """
+    brainreg function
+    """
     additional_images_downsample = {}
     if len(additional_images) > 0:
         for idx, images in enumerate(additional_images):
@@ -90,6 +110,9 @@ def registration_preparation(
     sort_input_file,
     scaling_rounding_decimals=5,
 ):
+    """
+    brainreg function
+    """
     ensure_directory_exists(output_directory)
     additional_images_downsample = additional_images_preparation(
         additional_images
@@ -145,6 +168,13 @@ def registration_preparation(
 
 
 def registration(autofluo_scan_path):
+    """
+    brainreg function to perform brain registration on autofluorescence image
+    args:
+        autfluo_scan_path: path to .tiff autofluorescence file
+    returns:
+        brg_data (Brainreg_data class)
+    """
     json_object = read_brainreg_json_file()
     input_directory = autofluo_scan_path
     output_directory = json_object["output_directory"]
@@ -168,7 +198,6 @@ def registration(autofluo_scan_path):
     smoothing_sigma_floating = json_object["smoothing_sigma_floating"]
     histogram_n_bins_floating = json_object["histogram_n_bins_floating"]
     histogram_n_bins_reference = json_object["histogram_n_bins_reference"]
-
     (
         additional_images_downsample,
         paths,

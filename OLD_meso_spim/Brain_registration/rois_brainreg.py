@@ -33,21 +33,42 @@ class BrainRegions:
         """
         Class storing all the required components necessary to run segmentaion on selected brain regions
         CFOS (nump_array): CFOS image
+        Atlas_rois (numpy_array): upscaled registred atlas image with ROIs
         Atlas_regions (numpy_array): upscaled registred atlas image with continuous regions
         num_regions (int): number of continuous regions
+        coordinates_rois (dict{roi_id : coordinates}): dictionnary of cropping coordinates of ROIs
         coordinates_regions (dict{roi_id : coordinates}): dictionnary of cropping coordinates of cont. regions
-        CFOS_extracted_regions (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images
+        CFOS_extracted_rois (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images for ROIs
+        CFOS_extracted_regions (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images for cont. regions
         """
         self.CFOS = imio.load_any(CFOS_path)
+        self.Atlas_rois = self.compute_rois(
+            registred_atlas_path, roi_ids, self.CFOS.shape
+        )
         self.Atlas_regions, self.num_regions = self.compute_continuous_regions(
             registred_atlas_path, roi_ids, self.CFOS.shape
         )
-        self.coordinates_regions = self.compute_continuous_regions_coordinates(
-            self.Atlas_regions, self.num_regions
+        self.coordinates_rois = self.compute_coordinates(
+            self.Atlas_rois, roi_ids
         )
-        self.CFOS_extracted_regions = self.extract_continous_regions(
+        self.coordinates_regions = self.compute_coordinates(
+            self.Atlas_regions, range(1, self.num_regions + 1)
+        )
+        self.CFOS_extracted_rois = self.extract_regions(
+            self.coordinates_rois, self.CFOS
+        )
+        self.CFOS_extracted_regions = self.extract_regions(
             self.coordinates_regions, self.CFOS
         )
+
+    def compute_rois(self, registred_atlas_path, roi_ids, CFOS_shape):
+        # Load the atlas
+        rAtlas = imio.load_any(registred_atlas_path)
+        # Select only rehions of interest
+        rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
+        # Rescale atlas to the shape of yur CFOS image
+        rAtlas_rois = brg_utils.rescale_labels(rAtlas_regions, CFOS_shape)
+        return rAtlas_rois
 
     def compute_continuous_regions(
         self, registred_atlas_path, roi_ids, CFOS_shape
@@ -76,20 +97,18 @@ class BrainRegions:
 
         return rAtlas_regions, num_regions
 
-    def compute_continuous_regions_coordinates(
-        self, rAtlas_regions_upscaled, num_regions
-    ):
+    def compute_coordinates(self, rAtlas_regions_upscaled, list_ids):
         """
-        Compute the coordinates of continuous regions of the upscaled registred atlas
+        Compute the coordinates of regions of the upscaled registred atlas
 
         Args:
             rAtlas_regions_upscaled (numpy_array(int)): upscaled registred atlas image with continuous regions
-            num_regions (int): number of continous regions
+            list_ids (int): list of ids for the different regions of interest
         Returns:
             Coos (dict{roi_id : coordinates}): dictionnary of 3D cropping coordinates of continuous regions
         """
         Coos = {}
-        for roi_id in range(1, num_regions + 1):
+        for roi_id in list_ids:
             # Create a mask with regions of interest
             mask = np.isin(rAtlas_regions_upscaled, roi_id)
             # Corresponding indices
@@ -104,9 +123,9 @@ class BrainRegions:
 
         return Coos
 
-    def extract_continuous_region(self, coordinates, CFOS):
+    def extract_region(self, coordinates, CFOS):
         """
-        Extract the cropped CFOS image of your continuous region of interest
+        Extract the cropped CFOS image of your region of interest
 
         Args:
             coordinates (dataclass): cropping coordinates
@@ -120,19 +139,19 @@ class BrainRegions:
             coordinates.zmin : coordinates.zmax + 1,
         ]
 
-    def extract_continous_regions(self, Coordinates, CFOS):
+    def extract_regions(self, Coordinates, CFOS):
         """
-        Extract all the continuous regions of interest from your CFOS image
+        Extract all the regions of interest from your CFOS image
 
         Args:
-            Coordinates (dict{roi_id : coordinates}): dictionnary of 3D cropping coordinates of continuous regions
+            Coordinates (dict{roi_id : coordinates}): dictionnary of 3D cropping coordinates of regions
             CFOS (nump_array): CFOS image
         Returns:
             CFOS_extracted_regions (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images
         """
         CFOS_extracted_regions = {}
         for key in Coordinates:
-            CFOS_extracted_regions[key] = self.extract_continuous_region(
+            CFOS_extracted_regions[key] = self.extract_region(
                 Coordinates[key], CFOS
             )
         return CFOS_extracted_regions

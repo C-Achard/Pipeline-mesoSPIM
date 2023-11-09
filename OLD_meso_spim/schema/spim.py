@@ -6,15 +6,11 @@ from pathlib import Path
 
 import datajoint as dj
 import numpy as np
-import scripts.brainreg_utils as brg_utils
-import scripts.run_brainreg as run_brg
-import scripts.rois_brainreg as rois_brg
-from cellseg3dmodule.config import InferenceWorkerConfig
-from cellseg3dmodule.predict import Inference
-from cellseg3dmodule.utils import volume_stats, zoom_factor
 from schema import user
 from schema.utils.path_dataclass import PathConfig
 from scripts import generate_report
+from Brain_registration import rois_brainreg, run_brainreg
+import imio
 
 # from scripts.napari_brainreg_ui import open_brainreg_window
 from tifffile import imread, imwrite
@@ -22,25 +18,7 @@ from tifffile import imread, imwrite
 # logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 # 127.0.0.1
-
-# dj.config["stores"] = {
-#     "spim_storage": {
-#         "protocol": "file",
-#         "location": os.path.expanduser("~"),  # should I just add a path to scans here ?
-#     }
-# }
 schema = dj.schema("tutorial", locals(), create_tables=True)
-#################
-# USE LINE BELOW TO SET FILE STORAGE JSON LOCATION
-#################
-FILE_STORAGE = PathConfig().load_from_json(
-    Path(__file__).parent.resolve() / "path_config.json"
-)
-#################
-# FILE_STORAGE = Path.home() / Path("Desktop/Code/BRAINREG_DATA/test_data")
-CELLSEG_CONFIG = InferenceWorkerConfig().load_from_json(
-    Path().absolute() / "cellseg3dmodule/inference_config.json"
-)
 
 
 @schema
@@ -55,21 +33,27 @@ class Scan(dj.Manual):
     autofluo_path: varchar(200)
     cfos_path: varchar(200)
     timestamp = CURRENT_TIMESTAMP: timestamp
-    regions_of_interest_ids : longblob
     """
 
     def get_shape(self):
         """Returns the shape of the scan."""
         path = (Scan() & self).fetch1("autofluo_path")
-        # TODO(cyril) check shapes matching between scan files.
-        #  Shapes should match, big warning otherwise (no grounds for exception I think)
-        image = brg_utils.load_volumes(path)
+        image = imio.load_any(path)
         return image.shape
+
+    class ROI_list(dj.Part):
+        """The list of ids of regions of interest for segmentation"""
+
+        defintion = """
+        -> Scan
+        ---
+        regions_of_interest_ids : longblob
+        """
 
 
 @schema
 class BrainRegistration(dj.Computed):
-    """Brain registration table. Contains the results of brainreg."""
+    """Brain registration table. Contains the parameters of brainreg."""
 
     definition = """ # The map from brainreg
     -> Scan
@@ -82,31 +66,95 @@ class BrainRegistration(dj.Computed):
     orientation = 'sal': char(3)
     """
 
-    # result of brainreg
-
-    class ROI(dj.Part):
-        """Regions of interest resulting from segmentation, cropped from CFOS."""
-
-        definition = """  # Regions of interest resulting from segmentation, cropped from CFOS
-        -> BrainRegistration
-        roi_id: int unsigned   # roi id
-        ---
-        roi_volume_path  : varchar(200)   # path to the cFOS volume cropped to the specified ROI
-        """
-
     def make(self, key):
         """Runs brainreg on the autofluo scan."""
         autofluo_scan_path = (Scan() & key).fetch1("autofluo_path")
 
         brainreg_data = run_brg.registration(autofluo_scan_path)
 
-        key["registration_path"] = brainreg_data.niftyreg_directory
+        key["registration_path"] = brainreg_data.output_directory
         key["atlas"] = brainreg_data.atlas
         key["voxel_size_x"] = brainreg_data.voxel_size_x
         key["voxel_size_y"] = brainreg_data.voxel_size_y
         key["voxel_size_z"] = brainreg_data.voxel_size_z  # A DISCUTER
         key["orientation"] = brainreg_data.orientation
         self.insert1(key)
+
+
+@schema
+class BrainRegistrationResults(dj.Computed):
+    """Results of brain registration table. Contains the results of brainreg"""
+
+    definition = """
+    -> BrainRegistration
+    -> Scan.ROI_list
+    """
+
+    def make(self, key):
+        roi_ids = (Scan.ROI_list() & self).fetch1("regions_of_interest_ids")
+        registred_atlas_path = (BrainRegistration() & self).fetch1(
+            "registration_path"
+        ) + "/registered_atlas.tiff"
+        CFOS_path = (Scan() & key).fetch1("cfos_path")
+        brain_regions = rois_brg.BrainRegions(
+            registred_atlas_path, CFOS_path, roi_ids
+        )
+        BrainRegistrationResults.Continuous_Region.insert(
+            dict(
+                key,
+                cont_region_id=num,
+                x_min=brain_regions.coordinates_regions[num].xmin,
+                x_max=brain_regions.coordinates_regions[num].xmax,
+                y_min=brain_regions.coordinates_regions[num].ymin,
+                y_max=brain_regions.coordinates_regions[num].ymax,
+                z_min=brain_regions.coordinates_regions[num].zmin,
+                z_max=brain_regions.coordinates_regions[num].zmax,
+            )
+            for num in brain_regions.coordinates_regions
+        )
+        BrainRegistrationResults.Brainreg_ROI.insert(
+            dict(
+                key,
+                roi_id=num,
+                x_min=brain_regions.coordinates_rois[num].xmin,
+                x_max=brain_regions.coordinates_rois[num].xmax,
+                y_min=brain_regions.coordinates_rois[num].ymin,
+                y_max=brain_regions.coordinates_rois[num].ymax,
+                z_min=brain_regions.coordinates_rois[num].zmin,
+                z_max=brain_regions.coordinates_rois[num].zmax,
+            )
+            for num in brain_regions.coordinates_rois
+        )
+
+    class Brainreg_ROI(dj.Part):
+        """Regions of interest in the brainreg labels"""
+
+        definition = """
+        -> BrainRegistrationResults
+        roi_id : int
+        ---
+        x_min : int
+        x_max : int
+        y_min : int
+        y_max : int
+        z_min : int
+        z_max : int
+        """
+
+    class Continuous_Region(dj.Part):
+        """Continuous regions of interest based on brainreg labels"""
+
+        definition = """
+        -> BrainRegistrationResults
+        cont_region_id : int
+        ---
+        x_min : int
+        x_max : int
+        y_min : int
+        y_max : int
+        z_min : int
+        z_max : int
+        """
 
 
 @schema

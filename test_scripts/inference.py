@@ -90,6 +90,18 @@ def inference_on_images(
 
 if __name__ == "__main__":
     image= np.random.rand(64, 64, 64)
-    results = inference_on_images(image)
+    results = inference_on_images(image, config=CONFIG)
     # see InferenceResult for more info on results so you can populate tables from them
     # note that the csv with stats is not saved by default, you need to retrieve it from the results
+
+# @dataclass
+# class InferenceResult:
+#     """Class to record results of a segmentation job."""
+
+#     image_id: int = 0
+#     original: np.array = None
+#     instance_labels: np.array = None
+#     crf_results: np.array = None
+#     stats: "np.array[ImageStats]" = None
+#     result: np.array = None
+#     model_name: str = None

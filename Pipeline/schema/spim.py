@@ -41,7 +41,7 @@ class Scan(dj.Manual):
     class ROI_list(dj.Part):
         """The list of ids of regions of interest for segmentation"""
 
-        defintion = """
+        definition = """
         -> Scan
         ---
         regions_of_interest_ids : longblob

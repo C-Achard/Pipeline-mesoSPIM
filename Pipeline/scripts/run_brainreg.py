@@ -22,6 +22,9 @@ from brainreg.paths import Paths
 from brainreg.utils import preprocess
 from tqdm import trange
 
+with open("brainreg_config.json", "r") as openfile:
+    json_object = json.load(openfile)
+
 """
 File for automated brain registration based on brainreg
 """
@@ -72,11 +75,12 @@ def filtering(brain, preprocessing=None):
     return brain
 
 
+"""
 def read_brainreg_json_file():
-    """Read the json file storing parameters for the brain registration."""
-    with open("brainreg_config.json", "r") as openfile:
+    with open(BRAINREG_CONFIG_JSON, "r") as openfile:
         json_object = json.load(openfile)
     return json_object
+"""
 
 
 def additional_images_preparation(additional_images):
@@ -162,7 +166,6 @@ def registration(autofluo_scan_path):
     returns:
         brg_data (Brainreg_data class).
     """
-    json_object = read_brainreg_json_file()
     input_directory = autofluo_scan_path
     output_directory = json_object["output_directory"]
     additional_images = json_object["additional_images"]

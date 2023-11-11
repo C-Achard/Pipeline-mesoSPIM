@@ -4,7 +4,7 @@ import pathlib
 
 import datajoint as dj
 import PIL.Image
-import datastore
+import utils.datastore as datastore
 
 schema = dj.schema("mice", locals(), create_tables=True)
 

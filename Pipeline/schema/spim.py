@@ -6,6 +6,7 @@ from pathlib import Path
 import datajoint as dj
 import numpy as np
 import user
+import mice
 from utils.path_dataclass import PathConfig
 from scripts import rois_brainreg, run_brainreg, inference
 

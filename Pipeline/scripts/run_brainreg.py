@@ -162,6 +162,7 @@ def registration(autofluo_scan_path):
         brg_data (Brainreg_data class).
     """
     input_directory = autofluo_scan_path
+    json_object = read_brainreg_json_file()
     output_directory = json_object["output_directory"]
     additional_images = json_object["additional_images"]
     atlas = json_object["atlas"]

@@ -41,14 +41,10 @@ def test_populate():
             autofluo_path,
             cfos_path,
             time,
-            [
-                656,
-                962,
-                767,
-            ],  # id of region, refer to scripts.brainreg_utils.get_atlas_ref_df
         ),
         skip_duplicates=True,
     )
+    test_scan.ROI_list.insert1([656, 962, 767])
 
     logger.info(test_scan)
 

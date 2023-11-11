@@ -5,6 +5,7 @@ import login
 
 sys.path.append(Path().absolute() / Path("scripts"))
 sys.path.append(Path().absolute() / Path("schema"))
+sys.path.append(Path().absolute() / Path("schema/utils"))
 
 login.connectToDatabase()
 from schema import mice, spim, user

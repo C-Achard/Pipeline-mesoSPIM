@@ -1,6 +1,8 @@
+import sys
+
+sys.path.append("")
 import logging
 from pathlib import Path
-
 import login
 
 login.connectToDatabase()

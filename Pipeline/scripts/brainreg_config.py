@@ -1,8 +1,12 @@
 import json
-import os
+from pathlib import Path
+
+op = Path("scripts").absolute() / Path("output_brainreg")
+if not (op.is_dir()):
+    op.mkdir()
 
 dictionary = {
-    "output_directory": os.getcwd(),
+    "output_directory": op,
     "additional_images": [],
     "atlas": "example_mouse_100um",
     "n_free_cpus": 4,

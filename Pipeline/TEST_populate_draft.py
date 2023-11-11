@@ -44,7 +44,8 @@ def test_populate():
         ),
         skip_duplicates=True,
     )
-    test_scan.ROI_list.insert1([656, 962, 767])
+    test_scan_part = spim.Scan.ROI_list()
+    test_scan_part.insert1([656, 962, 767])
 
     logger.info(test_scan)
 

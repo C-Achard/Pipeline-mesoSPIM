@@ -22,9 +22,6 @@ from brainreg.paths import Paths
 from brainreg.utils import preprocess
 from tqdm import trange
 
-with open("brainreg_config.json", "r") as openfile:
-    json_object = json.load(openfile)
-
 """
 File for automated brain registration based on brainreg
 """
@@ -75,12 +72,10 @@ def filtering(brain, preprocessing=None):
     return brain
 
 
-"""
 def read_brainreg_json_file():
-    with open(BRAINREG_CONFIG_JSON, "r") as openfile:
+    with open(Path.absolute() / Path("brainreg_config.json"), "r") as openfile:
         json_object = json.load(openfile)
     return json_object
-"""
 
 
 def additional_images_preparation(additional_images):

@@ -1,3 +1,6 @@
+import sys
+
+sys.path.append("")
 from dataclasses import dataclass
 
 import brainreg_utils as brg_utils

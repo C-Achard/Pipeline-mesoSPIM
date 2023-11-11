@@ -1,5 +1,7 @@
 """Schema for mouse related information."""
+import sys
 
+sys.path.append("")
 import os
 import pathlib
 

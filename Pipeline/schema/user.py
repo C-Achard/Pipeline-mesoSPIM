@@ -1,3 +1,6 @@
+import sys
+
+sys.path.append("")
 import datajoint as dj
 
 schema = dj.schema("user", locals(), create_tables=True)

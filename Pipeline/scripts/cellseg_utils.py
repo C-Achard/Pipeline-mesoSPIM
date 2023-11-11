@@ -1,5 +1,7 @@
-import logging
+import sys
 
+sys.path.append("")
+import logging
 import numpy as np
 from napari_cellseg3d.code_models.instance_segmentation import InstanceMethod
 from napari_cellseg3d.utils import LOGGER as logger

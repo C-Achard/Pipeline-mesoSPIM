@@ -1,5 +1,7 @@
 """Draft for the meso spim schema."""
+import sys
 
+sys.path.append("")
 import logging
 import imio
 from datetime import datetime

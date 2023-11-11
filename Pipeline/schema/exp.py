@@ -1,5 +1,7 @@
 """Schema for experimental information."""
+import sys
 
+sys.path.append("")
 import datajoint as dj
 
 schema = dj.schema("exp", locals(), create_tables=True)

@@ -1,6 +1,3 @@
-import sys
-
-sys.path.append("")
 from functools import partial
 from pathlib import Path
 

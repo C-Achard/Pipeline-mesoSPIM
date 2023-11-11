@@ -1,7 +1,4 @@
 """Draft for the meso spim schema."""
-import sys
-
-print(sys.path)
 import logging
 import imio
 from datetime import datetime

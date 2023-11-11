@@ -1,6 +1,3 @@
-import sys
-
-sys.path.append("")
 import json
 import logging
 import os

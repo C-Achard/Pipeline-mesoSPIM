@@ -1,6 +1,7 @@
 import sys
 
-sys.path.append("")
+sys.path.append("scripts")
+sys.path.append("schema")
 import logging
 from pathlib import Path
 import login

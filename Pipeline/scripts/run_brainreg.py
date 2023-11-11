@@ -74,7 +74,7 @@ def filtering(brain, preprocessing=None):
 
 def read_brainreg_json_file():
     with open(
-        Path("scripts").absolute() / Path("brainreg_config.json"), "r"
+        Path().resolve() / Path("brainreg_config.json"), "r"
     ) as openfile:
         json_object = json.load(openfile)
     return json_object

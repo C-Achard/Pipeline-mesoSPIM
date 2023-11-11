@@ -1,10 +1,10 @@
 import sys
-
-sys.path.append("scripts")
-sys.path.append("schema")
 import logging
 from pathlib import Path
 import login
+
+sys.path.append(Path().absolute() / Path("scripts"))
+sys.path.append(Path().absolute() / Path("schema"))
 
 login.connectToDatabase()
 from schema import mice, spim, user

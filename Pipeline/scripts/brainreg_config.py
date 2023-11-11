@@ -6,7 +6,7 @@ if not (op.is_dir()):
     op.mkdir()
 
 dictionary = {
-    "output_directory": op,
+    "output_directory": str(op),
     "additional_images": [],
     "atlas": "example_mouse_100um",
     "n_free_cpus": 4,

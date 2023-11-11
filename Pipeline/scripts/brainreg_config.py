@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 op = Path("Pipeline").absolute() / Path("output_brainreg")
+print()
 if not (op.is_dir()):
     op.mkdir()
 

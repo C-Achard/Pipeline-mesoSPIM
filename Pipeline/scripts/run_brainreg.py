@@ -74,7 +74,7 @@ def filtering(brain, preprocessing=None):
 
 def read_brainreg_json_file():
     """Read the json file storing parameters for the brain registration."""
-    with open("../schema/brainreg_config.json", "r") as openfile:
+    with open("brainreg_config.json", "r") as openfile:
         json_object = json.load(openfile)
     return json_object
 

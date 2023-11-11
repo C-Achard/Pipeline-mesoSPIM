@@ -8,6 +8,7 @@ import login
 
 login.connectToDatabase()
 from schema import mice, spim, user
+from scripts import *
 
 USER_PATH = Path.home()
 SCAN_PATH = USER_PATH / Path("Desktop/Code/BRAINREG_DATA/test_data")

@@ -3,10 +3,6 @@ import logging
 import os
 from pathlib import Path
 
-import sys
-
-print(sys.path)
-
 import bg_space as bg
 import imio
 import numpy as np

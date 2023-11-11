@@ -67,7 +67,7 @@ class BrainRegistration(dj.Computed):
         """Runs brainreg on the autofluo scan."""
         autofluo_scan_path = (Scan() & key).fetch1("autofluo_path")
 
-        brainreg_data = run_brg.registration(autofluo_scan_path)
+        brainreg_data = run_brainreg.registration(autofluo_scan_path)
 
         key["registration_path"] = brainreg_data.output_directory
         key["atlas"] = brainreg_data.atlas
@@ -93,7 +93,7 @@ class BrainRegistrationResults(dj.Computed):
             "registration_path"
         ) + "/registered_atlas.tiff"
         CFOS_path = (Scan() & key).fetch1("cfos_path")
-        brain_regions = rois_brg.BrainRegions(
+        brain_regions = rois_brainreg.BrainRegions(
             registred_atlas_path, CFOS_path, roi_ids
         )
         BrainRegistrationResults.Continuous_Region.insert(

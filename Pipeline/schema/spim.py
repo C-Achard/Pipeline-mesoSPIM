@@ -88,7 +88,7 @@ class BrainRegistrationResults(dj.Computed):
     """
 
     def make(self, key):
-        roi_ids = (Scan.ROI_list() & self).fetch1("regions_of_interest_ids")
+        roi_ids = (Scan.ROI_list() & self).fetch("regions_of_interest_ids")
         registred_atlas_path = (BrainRegistration() & self).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"

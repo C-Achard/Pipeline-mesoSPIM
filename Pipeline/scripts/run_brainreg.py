@@ -398,6 +398,8 @@ def registration(autofluo_scan_path):
         delete_directory_contents(niftyreg_directory)
         os.rmdir(niftyreg_directory)
 
-    brg_data = Brainreg_data(output_directory, atlas, voxel_sizes, orientation)
+    brg_data = Brainreg_data(
+        output_directory, atlas_name, voxel_sizes, orientation
+    )
 
     return brg_data

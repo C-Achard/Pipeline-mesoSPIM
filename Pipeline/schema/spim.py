@@ -87,42 +87,6 @@ class BrainRegistrationResults(dj.Computed):
     -> Scan.ROI_list
     """
 
-    def make(self, key):
-        roi_ids = (Scan.ROI_list() & key).fetch1("regions_of_interest_ids")
-        registred_atlas_path = (BrainRegistration() & key).fetch1(
-            "registration_path"
-        ) + "/registered_atlas.tiff"
-        CFOS_path = (Scan() & key).fetch1("cfos_path")
-        brain_regions = rois_brainreg.BrainRegions(
-            registred_atlas_path, CFOS_path, roi_ids
-        )
-        BrainRegistrationResults.Continuous_Region.insert(
-            dict(
-                key,
-                cont_region_id=num,
-                x_min=brain_regions.coordinates_regions[num].xmin,
-                x_max=brain_regions.coordinates_regions[num].xmax,
-                y_min=brain_regions.coordinates_regions[num].ymin,
-                y_max=brain_regions.coordinates_regions[num].ymax,
-                z_min=brain_regions.coordinates_regions[num].zmin,
-                z_max=brain_regions.coordinates_regions[num].zmax,
-            )
-            for num in brain_regions.coordinates_regions
-        )
-        BrainRegistrationResults.Brainreg_ROI.insert(
-            dict(
-                key,
-                roi_id=num,
-                x_min=brain_regions.coordinates_rois[num].xmin,
-                x_max=brain_regions.coordinates_rois[num].xmax,
-                y_min=brain_regions.coordinates_rois[num].ymin,
-                y_max=brain_regions.coordinates_rois[num].ymax,
-                z_min=brain_regions.coordinates_rois[num].zmin,
-                z_max=brain_regions.coordinates_rois[num].zmax,
-            )
-            for num in brain_regions.coordinates_rois
-        )
-
     class Brainreg_ROI(dj.Part):
         """Regions of interest in the brainreg labels"""
 
@@ -152,6 +116,43 @@ class BrainRegistrationResults(dj.Computed):
         z_min : int
         z_max : int
         """
+
+    def make(self, key):
+        roi_ids = (Scan.ROI_list() & key).fetch1("regions_of_interest_ids")
+        registred_atlas_path = (BrainRegistration() & key).fetch1(
+            "registration_path"
+        ) + "/registered_atlas.tiff"
+        CFOS_path = (Scan() & key).fetch1("cfos_path")
+        brain_regions = rois_brainreg.BrainRegions(
+            registred_atlas_path, CFOS_path, roi_ids
+        )
+        self.insert1(key)
+        BrainRegistrationResults.Continuous_Region.insert(
+            dict(
+                key,
+                cont_region_id=num,
+                x_min=brain_regions.coordinates_regions[num].xmin,
+                x_max=brain_regions.coordinates_regions[num].xmax,
+                y_min=brain_regions.coordinates_regions[num].ymin,
+                y_max=brain_regions.coordinates_regions[num].ymax,
+                z_min=brain_regions.coordinates_regions[num].zmin,
+                z_max=brain_regions.coordinates_regions[num].zmax,
+            )
+            for num in brain_regions.coordinates_regions
+        )
+        BrainRegistrationResults.Brainreg_ROI.insert(
+            dict(
+                key,
+                roi_id=num,
+                x_min=brain_regions.coordinates_rois[num].xmin,
+                x_max=brain_regions.coordinates_rois[num].xmax,
+                y_min=brain_regions.coordinates_rois[num].ymin,
+                y_max=brain_regions.coordinates_rois[num].ymax,
+                z_min=brain_regions.coordinates_rois[num].zmin,
+                z_max=brain_regions.coordinates_rois[num].zmax,
+            )
+            for num in brain_regions.coordinates_rois
+        )
 
 
 #

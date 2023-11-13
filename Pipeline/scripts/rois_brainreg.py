@@ -60,7 +60,7 @@ class BrainRegions:
         # Select only rehions of interest
         rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
         # Rescale atlas to the shape of yur CFOS image
-        rAtlas_rois = brg_utils.rescale_labels(rAtlas_regions, CFOS_shape)
+        rAtlas_rois = brg_utils.rescale_labels(rAtlas, CFOS_shape)
         return rAtlas_rois
 
     def compute_continuous_regions(

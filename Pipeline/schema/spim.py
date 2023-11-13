@@ -73,7 +73,7 @@ class BrainRegistration(dj.Computed):
         key["atlas"] = brainreg_data.atlas
         key["voxel_size_x"] = brainreg_data.voxel_size_x
         key["voxel_size_y"] = brainreg_data.voxel_size_y
-        key["voxel_size_z"] = brainreg_data.voxel_size_z  # A DISCUTER
+        key["voxel_size_z"] = brainreg_data.voxel_size_z
         key["orientation"] = brainreg_data.orientation
         self.insert1(key)
 

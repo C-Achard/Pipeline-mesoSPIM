@@ -167,7 +167,7 @@ def registration(autofluo_scan_path):
     json_object = read_brainreg_json_file()
     output_directory = json_object["output_directory"]
     additional_images = json_object["additional_images"]
-    atlas = json_object["atlas"]
+    atlas_name = json_object["atlas"]
     n_free_cpus = json_object["n_free_cpus"]
     voxel_sizes = json_object["voxel_sizes"]
     brain_geometry = json_object["brain_geometry"]
@@ -198,7 +198,7 @@ def registration(autofluo_scan_path):
         input_directory,
         output_directory,
         additional_images,
-        atlas,
+        atlas_name,
         orientation,
         voxel_sizes,
         n_free_cpus,

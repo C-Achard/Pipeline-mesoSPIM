@@ -155,62 +155,56 @@ class BrainRegistrationResults(dj.Computed):
         )
 
 
-#
-# @schema
-# class Inference(dj.Computed):
-#    """Semantic image segmentation"""
-#
-#    definition = """  # semantic image segmentation
-#    -> BrainRegistrationResults.Brainreg_ROI
-#    -> BrainRegistrationResults.Continuous_Region
-#    ---
-#    inference_labels_Brainreg_ROI: varchar(200)
-#    inference_labels_Continuous_Region: varchar(200)
-#    """
-#
-#    def make(self, key):  # from ROI in brainreg
-#        """Runs cellseg3d on the cFOS scan."""
-#        cfos_path = (Scan() & key).fetch1("cfos_path")
-#        roi_x_min = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("x_min")
-#        roi_x_max = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("x_max")
-#        roi_y_min = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("y_min")
-#        roi_y_max = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("y_max")
-#        roi_z_min = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("z_min")
-#        roi_z_max = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("z_max")
-#        roi_id = (BrainRegistrationResults.Brainreg_ROI() & key).fetch1("roi_id")
-#        reg_x_min = (BrainRegistrationResults.Continuous_Region() & key).fetch1("x_min")
-#        reg_x_max = (BrainRegistrationResults.Continuous_Region() & key).fetch1("x_max")
-#        reg_y_min = (BrainRegistrationResults.Continuous_Region() & key).fetch1("y_min")
-#        reg_y_max = (BrainRegistrationResults.Continuous_Region() & key).fetch1("y_max")
-#        reg_z_min = (BrainRegistrationResults.Continuous_Region() & key).fetch1("z_min")
-#        reg_z_max = (BrainRegistrationResults.Continuous_Region() & key).fetch1("z_max")
-#        cont_region_id = (BrainRegistrationResults.Continuous_Region() & key).fetch1("cont_region_id")
-#        cfos = imio.load_any(cfos_path)
-#        roi_cfos = cfos[
-#            roi_x_min : roi_x_max + 1,
-#            roi_y_min : roi_y_max + 1,
-#            roi_z_min : roi_z_max + 1,
-#        ]
-#        reg_cfos = cfos[
-#            reg_x_min : reg_x_max + 1,
-#            reg_y_min : reg_y_max + 1,
-#            reg_z_min : reg_z_max + 1,
-#        ]
-#        roi_res = inference(roi_cfos)[0].result
-#        reg_res = inference(reg_cfos)[0].result
-#
-#        result_path = Path.cwd() / "inference_results"
-#        if not Path(result_path).is_dir():
-#            result_path.mkdir()
-#        result_path_roi = result_path / "inference_roi_"+str(roi_id)+".tiff"
-#        result_path_reg = result_path / "inference_cont_reg_"+str(cont_region_id)+".tiff"
-#        imio.to_tiff(
-#            roi_res, result_path_roi
-#        )
-#        imio.to_tiff(
-#            reg_res, result_path_reg
-#        )
-#
-#        key["inference_labels_Brainreg_ROI"] = result_path_roi
-#        key["inference_labels_Continuous_Region"] = result_path_reg
-#        self.insert1(key)
+@schema
+class Inference(dj.Computed):
+    """Semantic image segmentation"""
+
+    definition = """  # semantic image segmentation
+    -> BrainRegistrationResults.Continuous_Region
+    ---
+    inference_labels: varchar(200)
+    """
+
+    def make(self, key):  # from ROI in brainreg
+        """Runs cellseg3d on the cFOS scan."""
+        cfos_path = (Scan() & key).fetch1("cfos_path")
+        reg_x_min = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("x_min")
+        reg_x_max = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("x_max")
+        reg_y_min = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("y_min")
+        reg_y_max = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("y_max")
+        reg_z_min = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("z_min")
+        reg_z_max = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("z_max")
+        cont_region_id = (
+            BrainRegistrationResults.Continuous_Region() & key
+        ).fetch1("cont_region_id")
+        cfos = imio.load_any(cfos_path)
+        reg_cfos = cfos[
+            reg_x_min : reg_x_max + 1,
+            reg_y_min : reg_y_max + 1,
+            reg_z_min : reg_z_max + 1,
+        ]
+        reg_res = inference(reg_cfos)[0].result
+
+        parent_path = Path.home() / Path("Desktop/Pipeline-mesoSPIM/Pipeline")
+        result_path = parent_path / Path("inference_results")
+        if not Path(result_path).is_dir():
+            result_path.mkdir()
+        result_path_reg = result_path / Path(
+            "inference_cont_reg_" + str(cont_region_id) + ".tiff"
+        )
+        imio.to_tiff(reg_res, result_path_reg)
+
+        key["inference_labels"] = result_path_reg
+        self.insert1(key)

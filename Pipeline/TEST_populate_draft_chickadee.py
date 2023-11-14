@@ -11,7 +11,7 @@ from schema import mice, spim, user
 from scripts import *
 
 # USER_PATH = Path.home()
-SCAN_PATH = Path("/Data/seb/CFOS_exp")
+SCAN_PATH = Path("/data/seb/CFOS_exp")
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

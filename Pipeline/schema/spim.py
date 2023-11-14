@@ -195,7 +195,7 @@ class Inference(dj.Computed):
             reg_y_min : reg_y_max + 1,
             reg_z_min : reg_z_max + 1,
         ]
-        reg_res = inference(reg_cfos)[0].result
+        reg_res = inference.inference_on_images(reg_cfos)[0].result
 
         parent_path = Path.home() / Path("Desktop/Pipeline-mesoSPIM/Pipeline")
         result_path = parent_path / Path("inference_results")

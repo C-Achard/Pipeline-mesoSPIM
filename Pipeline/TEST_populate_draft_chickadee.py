@@ -68,12 +68,10 @@ def test_populate():
 
     logger.info(test_brg_results)
 
-    """
     test_inference = spim.Inference()
     test_inference.populate()
 
     logger.info(test_inference)
-    """
 
     """
     test_stats = (

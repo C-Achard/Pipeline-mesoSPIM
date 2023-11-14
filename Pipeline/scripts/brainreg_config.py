@@ -12,7 +12,7 @@ dictionary = {
     "n_free_cpus": 4,
     "brain_geometry": "full",
     "voxel_sizes": [5, 5.26, 5.26],
-    "orientation": "sal",
+    "orientation": "sar",
     "preprocessing": "default",
     "sort_input_file": False,
     "save_orientation": False,

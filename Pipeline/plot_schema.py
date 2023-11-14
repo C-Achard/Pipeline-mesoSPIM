@@ -7,8 +7,8 @@ import sys
 sys.path.append("./scripts")
 sys.path.append("./schema")
 
+login.connectToDatabase()
 from schema import mice, spim, user
-from matplotlib import pyplot as plt
 
 # os.getcwd()
 # if 'tutorial' in os.getcwd():
@@ -18,8 +18,6 @@ from matplotlib import pyplot as plt
 #    print('Working directory: %s' %os.getcwd())
 
 # Login with credentials from login.py file (create this file from login_TEMPLATE.py)
-
-login.connectToDatabase()
 
 dj.ERD(mice)
 dj.ERD(user)

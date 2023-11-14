@@ -1,12 +1,14 @@
 import os
 import datajoint as dj
 import login
-from schema import mice, spim, user
-from matplotlib import pyplot as plt
+
 import sys
 
 sys.path.append("./scripts")
 sys.path.append("./schema")
+
+from schema import mice, spim, user
+from matplotlib import pyplot as plt
 
 # os.getcwd()
 # if 'tutorial' in os.getcwd():

@@ -5,8 +5,8 @@ from schema import mice, spim, user
 from matplotlib import pyplot as plt
 import sys
 
-sys.append("./scripts")
-sys.append("./schema")
+sys.path.append("./scripts")
+sys.path.append("./schema")
 
 # os.getcwd()
 # if 'tutorial' in os.getcwd():

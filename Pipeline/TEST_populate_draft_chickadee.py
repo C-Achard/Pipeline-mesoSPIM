@@ -13,6 +13,7 @@ from scripts import *
 # USER_PATH = Path.home()
 SCAN_PATH = Path("/data/seb/CFOS_exp").resolve()
 assert SCAN_PATH.is_dir()
+print(SCAN_PATH)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

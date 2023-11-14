@@ -19,9 +19,10 @@ from schema import mice, spim, user
 
 # Login with credentials from login.py file (create this file from login_TEMPLATE.py)
 
-dj.ERD(mice)
-dj.ERD(user)
+# dj.ERD(mice)
+# dj.ERD(user)
 
-dj.ERD(spim).save("diagram.png")
+dj.ERD(spim)
+fig.save("diagram.png")
 
 # dj.ERD(mice)+dj.ERD(spim)+dj.ERD(user)

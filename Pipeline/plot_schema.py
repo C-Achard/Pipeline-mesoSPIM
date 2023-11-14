@@ -22,7 +22,7 @@ from schema import mice, spim, user
 # dj.ERD(mice)
 # dj.ERD(user)
 
-dj.ERD(spim)
-fig.save("diagram.png")
+d = dj.ERD(spim)
+d.save("diagram.png")
 
 # dj.ERD(mice)+dj.ERD(spim)+dj.ERD(user)

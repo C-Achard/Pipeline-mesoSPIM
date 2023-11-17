@@ -45,6 +45,7 @@ def test_populate():
         ),
         skip_duplicates=True,
     )
+
     test_scan_part = spim.Scan.ROI_list()
     test_scan_part.insert1(("mouse", 0, [656, 962, 767]), skip_duplicates=True)
 

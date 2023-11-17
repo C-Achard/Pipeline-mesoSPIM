@@ -55,6 +55,15 @@ class BrainRegions:
         )
 
     def compute_rois(self, registred_atlas_path, roi_ids, CFOS_shape):
+        """Compute ROIs.
+
+        Args:
+            registred_atlas_path (string): path to .tiff atlas file obtained though the brain registration
+            rois_ids (list[int]): list of user defined regions of interest labeled on the registred atlas
+            CFOS_shape (numpy_array(int)): shape of CFOS image for the rescaling of atlas
+        Returns:
+            rAtlas_rois (numpy_array(int)): upscaled registred atlas image with ROIs
+        """
         # Load the atlas
         rAtlas = imio.load_any(registred_atlas_path)
         # Select only rehions of interest

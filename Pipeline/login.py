@@ -26,7 +26,7 @@ def getPassword():
 
 
 def connectToDatabase():
-    """Connects to the database using the credentials in the login.py file."""
+    """Connects to the database using the credentials in the login.py file given above"""
     import datajoint as dj
 
     dj.config["database.host"] = getIP()

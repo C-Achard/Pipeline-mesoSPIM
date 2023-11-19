@@ -2,7 +2,7 @@ import sys
 import logging
 from pathlib import Path
 import login
-import determin_ids
+import determine_ids
 
 sys.path.append("scripts")
 sys.path.append("schema")

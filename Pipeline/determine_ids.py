@@ -24,7 +24,7 @@ def select_areas_containing_specified_name(dataframe, global_name):
     rslt_df_1["occurrence_coma"] = rslt_df_1["name"].str.count(",")
     max_coma = np.max(rslt_df_1["occurrence_coma"].values)
     rslt_df_2 = rslt_df_1.loc[rslt_df_1["occurrence_coma"] == max_coma]
-    if rstl_df_2.empty:
+    if rslt_df_2.empty:
         print(global_name + ": global name not part of the atlas nomenclature")
     return rslt_df_2["name"].values
 

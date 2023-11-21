@@ -171,6 +171,7 @@ class Inference(dj.Computed):
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
         att = (ROIlist() & key).fetch1("attempt")
+        mouse_name = (Mouse() & key).fetch1("mouse_name")
         reg_x_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "x_min"
         )
@@ -205,7 +206,8 @@ class Inference(dj.Computed):
         if not Path(result_path).is_dir():
             result_path.mkdir()
         result_path_reg = result_path / Path(
-            "inference_cont_reg_"
+            mouse_name
+            + "inference_cont_reg_"
             + str(cont_region_id)
             + "_"
             + str(att)

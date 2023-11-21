@@ -85,12 +85,11 @@ class BrainRegistrationResults(dj.Computed):
     """Results of brain registration table. Contains the results of brainreg"""
 
     definition = """
-    -> attempts
-    -> ROIlist
     -> BrainRegistration
+    -> ROIlist
     """
 
-    class BrainregROI(dj.Part):
+    class BrainreROI(dj.Part):
         """Regions of interest in the brainreg labels"""
 
         definition = """
@@ -122,7 +121,6 @@ class BrainRegistrationResults(dj.Computed):
 
     def make(self, key):
         roi_ids = (ROIlist() & key).fetch1("regions_of_interest_ids")
-        key["attempt"] = (ROIlist() & key).fetch1("attempt")
         registred_atlas_path = (BrainRegistration() & key).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"
@@ -131,7 +129,7 @@ class BrainRegistrationResults(dj.Computed):
             registred_atlas_path, CFOS_path, roi_ids
         )
         self.insert1(key)
-        BrainRegistrationResults.Continuous_Region.insert(
+        BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
                 cont_region_id=num,
@@ -144,7 +142,7 @@ class BrainRegistrationResults(dj.Computed):
             )
             for num in brain_regions.coordinates_regions
         )
-        BrainRegistrationResults.Brainreg_ROI.insert(
+        BrainRegistrationResults.BrainregROI.insert(
             dict(
                 key,
                 roi_id=num,
@@ -172,7 +170,7 @@ class Inference(dj.Computed):
     def make(self, key):  # from ROI in brainreg
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
-        attempt = (ROIlist() & key).fetch1("attempt")
+        att = (ROIlist() & key).fetch1("attempt")
         reg_x_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "x_min"
         )
@@ -192,7 +190,7 @@ class Inference(dj.Computed):
             "z_max"
         )
         cont_region_id = (
-            BrainRegistrationResults.Continuous_Region() & key
+            BrainRegistrationResults.ContinuousRegion() & key
         ).fetch1("cont_region_id")
         cfos = imio.load_any(cfos_path)
         reg_cfos = cfos[
@@ -210,7 +208,7 @@ class Inference(dj.Computed):
             "inference_cont_reg_"
             + str(cont_region_id)
             + "_"
-            + str(attempt)
+            + str(att)
             + ".tiff"
         )
         imio.to_tiff(reg_res, result_path_reg)

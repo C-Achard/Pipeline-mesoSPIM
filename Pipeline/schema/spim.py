@@ -44,7 +44,7 @@ class ROIlist(dj.Manual):
     """The list of ids of regions of interest for segmentation"""
 
     definition = """
-    attempt: int
+    attempt_id: int
     ---
     regions_of_interest_ids : longblob
     """
@@ -207,7 +207,7 @@ class Inference(dj.Computed):
             result_path.mkdir()
         result_path_reg = result_path / Path(
             mouse_name
-            + "inference_cont_reg_"
+            + "_inference_cont_reg_"
             + str(cont_region_id)
             + "_"
             + str(att)

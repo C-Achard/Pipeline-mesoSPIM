@@ -40,7 +40,7 @@ class Scan(dj.Manual):
 
 
 @schema
-class ROI_list(dj.Manual):
+class ROIlist(dj.Manual):
     """The list of ids of regions of interest for segmentation"""
 
     definition = """
@@ -90,7 +90,7 @@ class BrainRegistrationResults(dj.Computed):
     -> BrainRegistration
     """
 
-    class Brainreg_ROI(dj.Part):
+    class BrainregROI(dj.Part):
         """Regions of interest in the brainreg labels"""
 
         definition = """
@@ -105,7 +105,7 @@ class BrainRegistrationResults(dj.Computed):
         z_max : int
         """
 
-    class Continuous_Region(dj.Part):
+    class ContinuousRegion(dj.Part):
         """Continuous regions of interest based on brainreg labels"""
 
         definition = """

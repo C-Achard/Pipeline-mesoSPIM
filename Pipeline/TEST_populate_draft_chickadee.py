@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 def test_populate():
     """Populate all tables as test."""
     mice.Mouse().insert1(
-        ("mouse_chickadee_2", 0, "2022-01-01", "U", "WT"), skip_duplicates=True
+        ("mouse_chickadee", 0, "2022-01-01", "U", "WT"), skip_duplicates=True
     )
     user.User().insert1(
-        ("cyril_tit_2", "cyril.achard@epfl.ch"), skip_duplicates=True
+        ("cyril_tit", "cyril.achard@epfl.ch"), skip_duplicates=True
     )
 
     test_scan = spim.Scan()
@@ -43,9 +43,9 @@ def test_populate():
 
     test_scan.insert1(
         (
-            "mouse_chickadee_2",
-            2,
-            "cyril_tit_2",
+            "mouse_chickadee",
+            0,
+            "cyril_tit",
             autofluo_path,
             cfos_path,
             time,
@@ -58,7 +58,7 @@ def test_populate():
     )
 
     test_scan_part = spim.Scan.ROIs()
-    test_scan_part.insert1((1, rois_list), skip_duplicates=True)
+    test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 
     logger.info(test_scan)
 

@@ -56,6 +56,7 @@ def test_populate():
     rois_list = determine_ids.extract_ids_of_selected_areas(
         list_global_names=gn
     )
+    print(rois_list)
     test_scan_part = spim.ROI_list()
     test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 

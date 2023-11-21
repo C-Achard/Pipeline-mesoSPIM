@@ -85,8 +85,8 @@ class BrainRegistrationResults(dj.Computed):
     """Results of brain registration table. Contains the results of brainreg"""
 
     definition = """
-    -> BrainRegistration
     -> ROI_list
+    -> BrainRegistration
     """
 
     class Brainreg_ROI(dj.Part):

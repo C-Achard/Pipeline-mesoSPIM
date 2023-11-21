@@ -170,7 +170,7 @@ class Inference(dj.Computed):
     def make(self, key):  # from ROI in brainreg
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
-        att = (ROIlist() & key).fetch1("attempt")
+        att = (ROIlist() & key).fetch1("attempt_id")
         mouse_name = (Mouse() & key).fetch1("mouse_name")
         reg_x_min = (BrainRegistrationResults.continuousregion() & key).fetch1(
             "x_min"

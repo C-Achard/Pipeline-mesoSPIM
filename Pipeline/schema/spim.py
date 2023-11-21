@@ -38,16 +38,13 @@ class Scan(dj.Manual):
         image = imio.load_any(path)
         return image.shape
 
+    class ROIs(dj.Part):
+        """The list of ids of regions of interest for segmentation"""
 
-@schema
-class ROIlist(dj.Manual):
-    """The list of ids of regions of interest for segmentation"""
-
-    definition = """
-    attempt_id: int
-    ---
-    regions_of_interest_ids : longblob
-    """
+        definition = """
+        regions_of_interest_ids : longblob
+        attempt_modif : int
+        """
 
 
 @schema
@@ -86,10 +83,10 @@ class BrainRegistrationResults(dj.Computed):
 
     definition = """
     -> BrainRegistration
-    -> ROIlist
+    -> Scan.ROIs
     """
 
-    class Brainregroi(dj.Part):
+    class BrainregROI(dj.Part):
         """Regions of interest in the brainreg labels"""
 
         definition = """
@@ -104,7 +101,7 @@ class BrainRegistrationResults(dj.Computed):
         z_max : int
         """
 
-    class Continuousregion(dj.Part):
+    class ContinuousRegion(dj.Part):
         """Continuous regions of interest based on brainreg labels"""
 
         definition = """
@@ -120,7 +117,7 @@ class BrainRegistrationResults(dj.Computed):
         """
 
     def make(self, key):
-        roi_ids = (ROIlist() & key).fetch1("regions_of_interest_ids")
+        roi_ids = (Scan.ROIs() & key).fetch1("regions_of_interest_ids")
         registred_atlas_path = (BrainRegistration() & key).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"
@@ -129,7 +126,7 @@ class BrainRegistrationResults(dj.Computed):
             registred_atlas_path, CFOS_path, roi_ids
         )
         self.insert1(key)
-        BrainRegistrationResults.Continuousregion.insert(
+        BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
                 cont_region_id=num,
@@ -142,7 +139,7 @@ class BrainRegistrationResults(dj.Computed):
             )
             for num in brain_regions.coordinates_regions
         )
-        BrainRegistrationResults.Brainregroi.insert(
+        BrainRegistrationResults.BrainregROI.insert(
             dict(
                 key,
                 roi_id=num,
@@ -162,7 +159,7 @@ class Inference(dj.Computed):
     """Semantic image segmentation"""
 
     definition = """  # semantic image segmentation
-    -> BrainRegistrationResults.Continuousregion
+    -> BrainRegistrationResults.ContinuousRegion
     ---
     inference_labels: varchar(200)
     """
@@ -170,28 +167,28 @@ class Inference(dj.Computed):
     def make(self, key):  # from ROI in brainreg
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
-        att = (ROIlist() & key).fetch1("attempt_id")
-        mouse_name = (Mouse() & key).fetch1("mouse_name")
-        reg_x_min = (BrainRegistrationResults.Continuousregion() & key).fetch1(
+        att = (Scan.ROIs() & key).fetch1("attempt_modif")
+        mouse_name = (mice.Mouse() & key).fetch1("mouse_name")
+        reg_x_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "x_min"
         )
-        reg_x_max = (BrainRegistrationResults.Continuousregion() & key).fetch1(
+        reg_x_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "x_max"
         )
-        reg_y_min = (BrainRegistrationResults.Continuousregion() & key).fetch1(
+        reg_y_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "y_min"
         )
-        reg_y_max = (BrainRegistrationResults.Continuousregion() & key).fetch1(
+        reg_y_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "y_max"
         )
-        reg_z_min = (BrainRegistrationResults.Continuousregion() & key).fetch1(
+        reg_z_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "z_min"
         )
-        reg_z_max = (BrainRegistrationResults.Continuousregion() & key).fetch1(
+        reg_z_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "z_max"
         )
         cont_region_id = (
-            BrainRegistrationResults.Continuousregion() & key
+            BrainRegistrationResults.ContinuousRegion() & key
         ).fetch1("cont_region_id")
         cfos = imio.load_any(cfos_path)
         reg_cfos = cfos[

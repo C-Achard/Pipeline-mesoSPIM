@@ -58,7 +58,7 @@ def test_populate():
     )
 
     test_scan_part = spim.Scan.ROIs()
-    test_scan_part.insert1((rois_list, 0), skip_duplicates=True)
+    test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 
     logger.info(test_scan)
 

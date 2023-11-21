@@ -42,8 +42,9 @@ class Scan(dj.Manual):
         """The list of ids of regions of interest for segmentation"""
 
         definition = """
-        regions_of_interest_ids : longblob
         attempt_modif : int
+        ---
+        regions_of_interest_ids : longblob
         """
 
 

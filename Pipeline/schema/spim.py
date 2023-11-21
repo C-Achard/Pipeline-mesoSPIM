@@ -89,7 +89,7 @@ class BrainRegistrationResults(dj.Computed):
     -> ROIlist
     """
 
-    class brainregroi(dj.Part):
+    class Brainregroi(dj.Part):
         """Regions of interest in the brainreg labels"""
 
         definition = """
@@ -104,7 +104,7 @@ class BrainRegistrationResults(dj.Computed):
         z_max : int
         """
 
-    class continuousregion(dj.Part):
+    class Continuousregion(dj.Part):
         """Continuous regions of interest based on brainreg labels"""
 
         definition = """
@@ -129,7 +129,7 @@ class BrainRegistrationResults(dj.Computed):
             registred_atlas_path, CFOS_path, roi_ids
         )
         self.insert1(key)
-        BrainRegistrationResults.continuousregion.insert(
+        BrainRegistrationResults.Continuousregion.insert(
             dict(
                 key,
                 cont_region_id=num,
@@ -142,7 +142,7 @@ class BrainRegistrationResults(dj.Computed):
             )
             for num in brain_regions.coordinates_regions
         )
-        BrainRegistrationResults.brainregroi.insert(
+        BrainRegistrationResults.Brainregroi.insert(
             dict(
                 key,
                 roi_id=num,
@@ -162,7 +162,7 @@ class Inference(dj.Computed):
     """Semantic image segmentation"""
 
     definition = """  # semantic image segmentation
-    -> BrainRegistrationResults.continuousregion
+    -> BrainRegistrationResults.Continuousregion
     ---
     inference_labels: varchar(200)
     """
@@ -172,26 +172,26 @@ class Inference(dj.Computed):
         cfos_path = (Scan() & key).fetch1("cfos_path")
         att = (ROIlist() & key).fetch1("attempt_id")
         mouse_name = (Mouse() & key).fetch1("mouse_name")
-        reg_x_min = (BrainRegistrationResults.continuousregion() & key).fetch1(
+        reg_x_min = (BrainRegistrationResults.Continuousregion() & key).fetch1(
             "x_min"
         )
-        reg_x_max = (BrainRegistrationResults.continuousregion() & key).fetch1(
+        reg_x_max = (BrainRegistrationResults.Continuousregion() & key).fetch1(
             "x_max"
         )
-        reg_y_min = (BrainRegistrationResults.continuousregion() & key).fetch1(
+        reg_y_min = (BrainRegistrationResults.Continuousregion() & key).fetch1(
             "y_min"
         )
-        reg_y_max = (BrainRegistrationResults.continuousregion() & key).fetch1(
+        reg_y_max = (BrainRegistrationResults.Continuousregion() & key).fetch1(
             "y_max"
         )
-        reg_z_min = (BrainRegistrationResults.continuousregion() & key).fetch1(
+        reg_z_min = (BrainRegistrationResults.Continuousregion() & key).fetch1(
             "z_min"
         )
-        reg_z_max = (BrainRegistrationResults.continuousregion() & key).fetch1(
+        reg_z_max = (BrainRegistrationResults.Continuousregion() & key).fetch1(
             "z_max"
         )
         cont_region_id = (
-            BrainRegistrationResults.continuousregion() & key
+            BrainRegistrationResults.Continuousregion() & key
         ).fetch1("cont_region_id")
         cfos = imio.load_any(cfos_path)
         reg_cfos = cfos[

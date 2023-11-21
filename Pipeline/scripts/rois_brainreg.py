@@ -111,6 +111,8 @@ class BrainRegions:
         for roi_id in list_ids:
             # Create a mask with regions of interest
             mask = np.isin(rAtlas_regions_upscaled, roi_id)
+            print(roi_id)
+            print(np.any(mask))
             # Corresponding indices
             inds = np.where(mask)
             # Finds mins and maxs to get the cropping coordinates

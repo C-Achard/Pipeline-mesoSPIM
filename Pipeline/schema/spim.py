@@ -89,7 +89,7 @@ class BrainRegistrationResults(dj.Computed):
     -> ROIlist
     """
 
-    class BrainreROI(dj.Part):
+    class BrainregROI(dj.Part):
         """Regions of interest in the brainreg labels"""
 
         definition = """

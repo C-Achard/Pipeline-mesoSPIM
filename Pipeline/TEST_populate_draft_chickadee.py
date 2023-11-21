@@ -44,7 +44,7 @@ def test_populate():
     test_scan.insert1(
         (
             "mouse_chickadee_2",
-            0,
+            1,
             "cyril_tit_2",
             autofluo_path,
             cfos_path,

@@ -44,6 +44,7 @@ class ROI_list(dj.Manual):
     """The list of ids of regions of interest for segmentation"""
 
     definition = """
+    attempt: int
     ---
     regions_of_interest_ids : longblob
     """

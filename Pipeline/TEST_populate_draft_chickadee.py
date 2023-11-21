@@ -54,7 +54,7 @@ def test_populate():
     )
     gn = ["primary visual area", "primary motor area", "retrosplenial area"]
     rois_list = determine_ids.extract_ids_of_selected_areas(
-        list_global_names=gn
+        atlas_name="allen_mouse_25um", list_global_names=gn
     )
 
     test_scan_part = spim.Scan.ROIs()

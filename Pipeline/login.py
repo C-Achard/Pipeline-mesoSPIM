@@ -12,7 +12,7 @@ Rename this file to login.py after changing your name and password.
 
 def getIP():
     """Return ip address of the server."""  # points to DataJoint tutorial database in Docker
-    return "172.18.0.1"
+    return "172.18.0.2"
 
 
 def getUser():

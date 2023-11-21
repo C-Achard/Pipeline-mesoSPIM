@@ -62,9 +62,10 @@ def extract_ids_of_selected_areas(
                 )
                 for specific_name in list_specific_names:
                     rslt_df = df.loc[df["name"] == specific_name.lower()]
-                    dict_of_ids[specific_name.lower()] = rslt_df["id"].values[
-                        0
-                    ]
+                    if rslt_df["id"].values[0] != 545:
+                        dict_of_ids[specific_name.lower()] = rslt_df[
+                            "id"
+                        ].values[0]
 
         if list_atlas_names:
             for atlas_name in list_atlas_names:

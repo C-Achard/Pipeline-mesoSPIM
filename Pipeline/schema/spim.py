@@ -38,14 +38,14 @@ class Scan(dj.Manual):
         image = imio.load_any(path)
         return image.shape
 
-    class ROI_list(dj.Part):
-        """The list of ids of regions of interest for segmentation"""
 
-        definition = """
-        -> Scan
-        ---
-        regions_of_interest_ids : longblob
-        """
+@schema
+class ROI_list(dj.Manual):
+    """The list of ids of regions of interest for segmentation"""
+
+    definition = """
+    regions_of_interest_ids : longblob
+    """
 
 
 @schema
@@ -84,7 +84,7 @@ class BrainRegistrationResults(dj.Computed):
 
     definition = """
     -> BrainRegistration
-    -> Scan.ROI_list
+    -> ROI_list
     """
 
     class Brainreg_ROI(dj.Part):
@@ -118,7 +118,7 @@ class BrainRegistrationResults(dj.Computed):
         """
 
     def make(self, key):
-        roi_ids = (Scan.ROI_list() & key).fetch1("regions_of_interest_ids")
+        roi_ids = (ROI_list() & key).fetch1("regions_of_interest_ids")
         registred_atlas_path = (BrainRegistration() & key).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"

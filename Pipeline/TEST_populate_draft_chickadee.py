@@ -56,10 +56,8 @@ def test_populate():
     rois_list = determine_ids.extract_ids_of_selected_areas(
         list_global_names=gn
     )
-    test_scan_part = spim.Scan.ROI_list()
-    test_scan_part.insert1(
-        ("mouse_chickadee", 0, rois_list), skip_duplicates=True
-    )
+    test_scan_part = spim.ROI_list()
+    test_scan_part.insert1((rois_list), skip_duplicates=True)
 
     logger.info(test_scan)
 

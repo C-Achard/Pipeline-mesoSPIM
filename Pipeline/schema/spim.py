@@ -86,7 +86,7 @@ class BrainRegistrationResults(dj.Computed):
 
     definition = """
     -> attempts
-    -> ROI_list
+    -> ROIlist
     -> BrainRegistration
     """
 
@@ -121,8 +121,8 @@ class BrainRegistrationResults(dj.Computed):
         """
 
     def make(self, key):
-        roi_ids = (ROI_list() & key).fetch1("regions_of_interest_ids")
-        key["attempt"] = (ROI_list() & key).fetch1("attempt")
+        roi_ids = (ROIlist() & key).fetch1("regions_of_interest_ids")
+        key["attempt"] = (ROIlist() & key).fetch1("attempt")
         registred_atlas_path = (BrainRegistration() & key).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"
@@ -164,7 +164,7 @@ class Inference(dj.Computed):
     """Semantic image segmentation"""
 
     definition = """  # semantic image segmentation
-    -> BrainRegistrationResults.Continuous_Region
+    -> BrainRegistrationResults.ContinuousRegion
     ---
     inference_labels: varchar(200)
     """
@@ -172,25 +172,25 @@ class Inference(dj.Computed):
     def make(self, key):  # from ROI in brainreg
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
-        attempt = (ROI_list() & key).fetch1("attempt")
-        reg_x_min = (
-            BrainRegistrationResults.Continuous_Region() & key
-        ).fetch1("x_min")
-        reg_x_max = (
-            BrainRegistrationResults.Continuous_Region() & key
-        ).fetch1("x_max")
-        reg_y_min = (
-            BrainRegistrationResults.Continuous_Region() & key
-        ).fetch1("y_min")
-        reg_y_max = (
-            BrainRegistrationResults.Continuous_Region() & key
-        ).fetch1("y_max")
-        reg_z_min = (
-            BrainRegistrationResults.Continuous_Region() & key
-        ).fetch1("z_min")
-        reg_z_max = (
-            BrainRegistrationResults.Continuous_Region() & key
-        ).fetch1("z_max")
+        attempt = (ROIlist() & key).fetch1("attempt")
+        reg_x_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "x_min"
+        )
+        reg_x_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "x_max"
+        )
+        reg_y_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "y_min"
+        )
+        reg_y_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "y_max"
+        )
+        reg_z_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "z_min"
+        )
+        reg_z_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "z_max"
+        )
         cont_region_id = (
             BrainRegistrationResults.Continuous_Region() & key
         ).fetch1("cont_region_id")

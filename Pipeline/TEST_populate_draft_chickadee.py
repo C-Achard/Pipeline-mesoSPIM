@@ -57,7 +57,7 @@ def test_populate():
         list_global_names=gn
     )
     print(rois_list)
-    test_scan_part = spim.ROI_list()
+    test_scan_part = spim.ROIlist()
     test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 
     logger.info(test_scan)

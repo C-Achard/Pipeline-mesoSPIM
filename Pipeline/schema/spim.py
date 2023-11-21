@@ -85,6 +85,7 @@ class BrainRegistrationResults(dj.Computed):
     """Results of brain registration table. Contains the results of brainreg"""
 
     definition = """
+    -> attempts
     -> ROI_list
     -> BrainRegistration
     """
@@ -121,6 +122,7 @@ class BrainRegistrationResults(dj.Computed):
 
     def make(self, key):
         roi_ids = (ROI_list() & key).fetch1("regions_of_interest_ids")
+        key["attempt"] = (ROI_list() & key).fetch1("attempt")
         registred_atlas_path = (BrainRegistration() & key).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"
@@ -170,6 +172,7 @@ class Inference(dj.Computed):
     def make(self, key):  # from ROI in brainreg
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
+        attempt = (ROI_list() & key).fetch1("attempt")
         reg_x_min = (
             BrainRegistrationResults.Continuous_Region() & key
         ).fetch1("x_min")
@@ -204,7 +207,11 @@ class Inference(dj.Computed):
         if not Path(result_path).is_dir():
             result_path.mkdir()
         result_path_reg = result_path / Path(
-            "inference_cont_reg_" + str(cont_region_id) + ".tiff"
+            "inference_cont_reg_"
+            + str(cont_region_id)
+            + "_"
+            + str(attempt)
+            + ".tiff"
         )
         imio.to_tiff(reg_res, result_path_reg)
 

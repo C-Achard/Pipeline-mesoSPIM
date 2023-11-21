@@ -63,6 +63,7 @@ def extract_ids_of_selected_areas(
                 for specific_name in list_specific_names:
                     rslt_df = df.loc[df["name"] == specific_name.lower()]
                     print(rslt_df["id"].values[0])
+                    print(rslt_df["id"].values[0] != 545)
                     if rslt_df["id"].values[0] != 545:
                         dict_of_ids[specific_name.lower()] = rslt_df[
                             "id"

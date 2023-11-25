@@ -200,7 +200,9 @@ class Inference(dj.Computed):
             reg_y_min : reg_y_max + 1,
             reg_z_min : reg_z_max + 1,
         ]
-        infer = inference.inference_on_images(reg_cfos)[0]
+        infer = inference.inference_on_images(reg_cfos)
+        print(infer)
+        # infer = inference.inference_on_images(reg_cfos)[0]
 
         reg_res = infer.result
         reg_stats = infer.stats

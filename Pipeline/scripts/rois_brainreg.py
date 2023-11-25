@@ -31,28 +31,20 @@ class BrainRegions:
         num_regions (int): number of continuous regions
         coordinates_rois (dict{roi_id : coordinates}): dictionnary of cropping coordinates of ROIs
         coordinates_regions (dict{roi_id : coordinates}): dictionnary of cropping coordinates of cont. regions
-        CFOS_extracted_rois (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images for ROIs
-        CFOS_extracted_regions (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images for cont. regions.
         """
         self.CFOS = imio.load_any(CFOS_path)
-        self.Atlas_rois = self.compute_rois(
+        Atlas_rois = self.compute_rois(
             registred_atlas_path, roi_ids, self.CFOS.shape
         )
-        self.Atlas_regions, self.num_regions = self.compute_continuous_regions(
+        self.coordinates_rois = self.compute_coordinates(Atlas_rois, roi_ids)
+        del Atlas_rois
+        Atlas_regions, self.num_regions = self.compute_continuous_regions(
             registred_atlas_path, roi_ids, self.CFOS.shape
-        )
-        self.coordinates_rois = self.compute_coordinates(
-            self.Atlas_rois, roi_ids
         )
         self.coordinates_regions = self.compute_coordinates(
-            self.Atlas_regions, range(1, self.num_regions + 1)
+            Atlas_regions, range(1, self.num_regions + 1)
         )
-        self.CFOS_extracted_rois = self.extract_regions(
-            self.coordinates_rois, self.CFOS
-        )
-        self.CFOS_extracted_regions = self.extract_regions(
-            self.coordinates_regions, self.CFOS
-        )
+        del Atlas_regions
 
     def compute_rois(self, registred_atlas_path, roi_ids, CFOS_shape):
         """Compute ROIs.
@@ -109,13 +101,8 @@ class BrainRegions:
         """
         Coos = {}
         for roi_id in list_ids:
-            print(roi_id)
             # Create a mask with regions of interest
-            print(rAtlas_regions_upscaled)
-            print(np.any(rAtlas_regions_upscaled))
             mask = np.isin(rAtlas_regions_upscaled, roi_id)
-            print(roi_id)
-            print(np.any(mask))
             # Corresponding indices
             inds = np.where(mask)
             # Finds mins and maxs to get the cropping coordinates
@@ -130,35 +117,3 @@ class BrainRegions:
         print(mins)
         print(maxs)
         return Coos
-
-    def extract_region(self, coordinates, CFOS):
-        """Extract the cropped CFOS image of your region of interest.
-
-        Args:
-            coordinates (dataclass): cropping coordinates
-            CFOS (nump_array): CFOS image
-        Returns:
-            cropped CFOS image
-        """
-
-        return CFOS[
-            coordinates.xmin : coordinates.xmax + 1,
-            coordinates.ymin : coordinates.ymax + 1,
-            coordinates.zmin : coordinates.zmax + 1,
-        ]
-
-    def extract_regions(self, Coordinates, CFOS):
-        """Extract all the regions of interest from your CFOS image.
-
-        Args:
-            Coordinates (dict{roi_id : coordinates}): dictionnary of 3D cropping coordinates of regions
-            CFOS (nump_array): CFOS image
-        Returns:
-            CFOS_extracted_regions (dict{roi_id : CFOS image}}): dictionary of cropped CFOS images
-        """
-        CFOS_extracted_regions = {}
-        for key in Coordinates:
-            CFOS_extracted_regions[key] = self.extract_region(
-                Coordinates[key], CFOS
-            )
-        return CFOS_extracted_regions

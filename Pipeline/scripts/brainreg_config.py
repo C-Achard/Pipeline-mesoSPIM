@@ -30,7 +30,7 @@ DICT = {
 }
 
 
-def write_json_file_brainreg(dictonary=DICT):
+def write_json_file_brainreg(dictionary=DICT):
     json_object = json.dumps(dictionary, indent=21)
     # Writing to sample.json
     filename = Path("scripts").resolve() / Path("brainreg_config.json")

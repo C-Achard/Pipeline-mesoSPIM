@@ -163,7 +163,9 @@ class Inference(dj.Computed):
     definition = """  # semantic image segmentation
     -> BrainRegistrationResults.ContinuousRegion
     ---
-    inference_labels: varchar(200)
+    semantic_labels: varchar(200)
+    instance_labels: varchar(200)
+    stats: varchar(200)
     """
 
     def make(self, key):  # from ROI in brainreg
@@ -198,9 +200,18 @@ class Inference(dj.Computed):
             reg_y_min : reg_y_max + 1,
             reg_z_min : reg_z_max + 1,
         ]
-        reg_res = inference.inference_on_images(reg_cfos)[0].result
+        infer = inference.inference_on_images(reg_cfos)[0]
 
-        parent_path = Path.home() / Path("Desktop/Pipeline-mesoSPIM/Pipeline")
+        reg_res = infer.result
+        reg_stats = infer.stats
+        reg_instance_labels = infer.instance_labels
+
+        df = pd.DataFrame()
+        for stats in reg_stats:
+            df = pd.DataFrame(stats.get_dict())
+            print(df)
+
+        parent_path = Path.cwd()
         result_path = parent_path / Path("inference_results")
         if not Path(result_path).is_dir():
             result_path.mkdir()
@@ -214,5 +225,27 @@ class Inference(dj.Computed):
         )
         imio.to_tiff(reg_res, result_path_reg)
 
-        key["inference_labels"] = result_path_reg
+        result_path_reg_instance = result_path / Path(
+            mouse_name
+            + "_instance_seg_cont_reg_"
+            + str(cont_region_id)
+            + "_"
+            + str(att)
+            + ".tiff"
+        )
+        imio.to_tiff(reg_instance_labels, result_path_reg_instance)
+
+        result_path_reg_stats = result_path / Path(
+            mouse_name
+            + "_stats_seg_cont_reg_"
+            + str(cont_region_id)
+            + "_"
+            + str(att)
+            + ".tiff"
+        )
+        df.to_csv(result_path_reg_stats)
+
+        key["semantic_labels"] = result_path_reg
+        key["instance_labels"] = result_path_reg_instance
+        key["stats"] = result_path_reg_stats
         self.insert1(key)

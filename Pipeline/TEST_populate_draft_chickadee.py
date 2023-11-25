@@ -77,20 +77,6 @@ def test_populate():
 
     logger.info(test_inference)
 
-    """
-    test_stats = (
-        spim.Analysis()
-    )  # stats on instance seg. : sphericity, centroids, etc...
-    test_stats.populate()
-
-    logger.info(test_stats)
-
-    test_report = spim.Report()
-    test_report.populate()
-
-    logger.info(test_report)
-    """
-
 
 if __name__ == "__main__":
     login.connectToDatabase()

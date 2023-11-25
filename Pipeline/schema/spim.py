@@ -24,7 +24,7 @@ class Scan(dj.Manual):
 
     definition = """ # The original .tif/.tiff/.raw scans from the mesoSPIM
     -> mice.Mouse
-    attempt: int
+    scan_attempt: int
     ---
     -> user.User
     autofluo_path: varchar(200)
@@ -42,7 +42,7 @@ class Scan(dj.Manual):
         """The list of ids of regions of interest for segmentation"""
 
         definition = """
-        attempt_modif : int
+        ids_key : int
         ---
         regions_of_interest_ids : longblob
         """
@@ -119,7 +119,6 @@ class BrainRegistrationResults(dj.Computed):
 
     def make(self, key):
         roi_ids = (Scan.ROIs() & key).fetch1("regions_of_interest_ids")
-        print(roi_ids)
         registred_atlas_path = (BrainRegistration() & key).fetch1(
             "registration_path"
         ) + "/registered_atlas.tiff"
@@ -171,7 +170,7 @@ class Inference(dj.Computed):
     def make(self, key):  # from ROI in brainreg
         """Runs cellseg3d on the cFOS scan."""
         cfos_path = (Scan() & key).fetch1("cfos_path")
-        att = (Scan.ROIs() & key).fetch1("attempt_modif")
+        att = (Scan.ROIs() & key).fetch1("ids_key")
         mouse_name = (mice.Mouse() & key).fetch1("mouse_name")
         reg_x_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "x_min"
@@ -200,9 +199,7 @@ class Inference(dj.Computed):
             reg_y_min : reg_y_max + 1,
             reg_z_min : reg_z_max + 1,
         ]
-        infer = inference.inference_on_images(reg_cfos)
-        print(infer)
-        # infer = inference.inference_on_images(reg_cfos)[0]
+        infer = inference.inference_on_images(reg_cfos)[0]
 
         reg_res = infer.result
         reg_stats = infer.stats

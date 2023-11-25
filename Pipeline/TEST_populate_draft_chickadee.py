@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 def test_populate():
+    brainreg_config.write_json_file_brainreg()
+
     """Populate all tables as test."""
     mice.Mouse().insert1(
         ("mouse_chickadee", 0, "2022-01-01", "U", "WT"), skip_duplicates=True
@@ -57,9 +59,9 @@ def test_populate():
         atlas_name="allen_mouse_25um", list_global_names=gn
     )
 
-    rois_list = [656, 962, 767]
+    # rois_list = [656, 962, 767]
     test_scan_part = spim.Scan.ROIs()
-    test_scan_part.insert1((1, rois_list), skip_duplicates=True)
+    test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 
     logger.info(test_scan)
 

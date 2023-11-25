@@ -5,7 +5,7 @@ op = Path().resolve() / Path("output_brainreg_chickadee")
 if not (op.is_dir()):
     op.mkdir()
 
-dictionary = {
+DICT = {
     "output_directory": str(op),
     "additional_images": [],
     "atlas": "allen_mouse_25um",
@@ -29,8 +29,10 @@ dictionary = {
     "histogram_n_bins_reference": 128,
 }
 
-json_object = json.dumps(dictionary, indent=21)
 
-# Writing to sample.json
-with open("brainreg_config.json", "w") as outfile:
-    outfile.write(json_object)
+def write_json_file_brainreg(dictonary=DICT):
+    json_object = json.dumps(dictionary, indent=21)
+    # Writing to sample.json
+    filename = Path("scripts").resolve() / Path("brainreg_config.json")
+    with open(filename, "w") as outfile:
+        outfile.write(json_object)

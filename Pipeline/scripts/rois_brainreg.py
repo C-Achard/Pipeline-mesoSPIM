@@ -113,7 +113,4 @@ class BrainRegions:
             )
             Coos[str(roi_id)] = coos
 
-        print("ok")
-        print(mins)
-        print(maxs)
         return Coos

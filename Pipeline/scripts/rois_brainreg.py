@@ -111,6 +111,8 @@ class BrainRegions:
         for roi_id in list_ids:
             print(roi_id)
             # Create a mask with regions of interest
+            print(rAtlas_regions_upscaled)
+            print(np.any(rAtlas_regions_upscaled))
             mask = np.isin(rAtlas_regions_upscaled, roi_id)
             print(roi_id)
             print(np.any(mask))

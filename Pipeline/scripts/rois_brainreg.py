@@ -118,6 +118,7 @@ class BrainRegions:
             # Corresponding indices
             inds = np.where(mask)
             # Finds mins and maxs to get the cropping coordinates
+            print(inds)
             mins = np.min(inds, axis=1)
             maxs = np.max(inds, axis=1)
             coos = Coordinates(

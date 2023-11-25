@@ -96,10 +96,6 @@ class BrainRegions:
         # Rescale atlas to the shape of yur CFOS image
         rAtlas_regions = brg_utils.rescale_labels(rAtlas_regions, CFOS_shape)
 
-        print("ok")
-        print(rAtlas_regions)
-        print(num_regions)
-
         return rAtlas_regions, num_regions
 
     def compute_coordinates(self, rAtlas_regions_upscaled, list_ids):
@@ -112,8 +108,8 @@ class BrainRegions:
             Coos (dict{roi_id : coordinates}): dictionnary of 3D cropping coordinates of continuous regions
         """
         Coos = {}
-        print("ok")
         for roi_id in list_ids:
+            print(roi_id)
             # Create a mask with regions of interest
             mask = np.isin(rAtlas_regions_upscaled, roi_id)
             print(roi_id)

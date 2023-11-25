@@ -57,6 +57,7 @@ def test_populate():
         atlas_name="allen_mouse_25um", list_global_names=gn
     )
 
+    rois_list = [656, 962, 767]
     test_scan_part = spim.Scan.ROIs()
     test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 

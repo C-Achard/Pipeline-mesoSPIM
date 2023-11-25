@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from cellseg_utils import InstanceSegmentationWrapper, LogFixture
 from napari_cellseg3d.code_models.instance_segmentation import voronoi_otsu
-from napari_cellseg3d.code_models.worker_inference import InferenceWorker
+from napari_cellseg3d.code_models.workers import InferenceWorker
 from napari_cellseg3d.config import (
     InferenceWorkerConfig,
     InstanceSegConfig,

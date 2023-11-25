@@ -96,6 +96,8 @@ class BrainRegions:
         # Rescale atlas to the shape of yur CFOS image
         rAtlas_regions = brg_utils.rescale_labels(rAtlas_regions, CFOS_shape)
 
+        print("ok")
+
         return rAtlas_regions, num_regions
 
     def compute_coordinates(self, rAtlas_regions_upscaled, list_ids):
@@ -123,6 +125,9 @@ class BrainRegions:
             )
             Coos[str(roi_id)] = coos
 
+        print("ok")
+        print(mins)
+        print(maxs)
         return Coos
 
     def extract_region(self, coordinates, CFOS):
@@ -134,6 +139,7 @@ class BrainRegions:
         Returns:
             cropped CFOS image
         """
+
         return CFOS[
             coordinates.xmin : coordinates.xmax + 1,
             coordinates.ymin : coordinates.ymax + 1,

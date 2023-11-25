@@ -9,7 +9,7 @@ sys.path.append("schema")
 
 login.connectToDatabase()
 from schema import mice, spim, user
-from scripts import *
+from scripts import brainreg_config
 
 # USER_PATH = Path.home()
 SCAN_PATH = Path("/data/seb/CFOS_exp").resolve()

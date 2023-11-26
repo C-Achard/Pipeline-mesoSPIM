@@ -241,7 +241,7 @@ class Inference(dj.Computed):
             + str(cont_region_id)
             + "_"
             + str(att)
-            + ".tiff"
+            + ".csv"
         )
         df.to_csv(result_path_reg_stats)
 

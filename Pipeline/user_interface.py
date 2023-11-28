@@ -4,7 +4,6 @@ import sys
 import logging
 from pathlib import Path
 import login
-import determine_ids
 
 sys.path.append("scripts")
 sys.path.append("schema")
@@ -23,7 +22,7 @@ except Exception as e:
     st.stop()
 
 from schema import mice, spim, user
-from scripts import brainreg_config
+from scripts import brainreg_config, determine_ids
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

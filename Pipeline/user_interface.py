@@ -205,12 +205,14 @@ def main():
         rois_ids = determine_ids.extract_ids_of_selected_areas(
             atlas_name=atlas_name, list_global_names=gn
         )
+        """
         bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
         df = bg_atlas.lookup_df
         df["name"] = df["name"].str.lower()
-        filtered_df = df[df["id"].isin(rois_ids)]
+        filtered_df = df[df['id'].isin(rois_ids)]
         st.write("The following areas have been selected")
         st.dataframe(filtered_df)
+        """
 
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")

@@ -49,6 +49,7 @@ Titouan:
 - [ ] Add result viewing code
 - [ ] Add possibility to run on several paths
 - [ ] Add list of selected regions in Streamlit app
+- [ ] Add more verbose output to cropping of resized ROIs in atlas space
 
 Cyril:
 - [x] Add cell segmentation code

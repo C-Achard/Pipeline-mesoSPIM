@@ -4,6 +4,7 @@ import sys
 import logging
 from pathlib import Path
 import login
+from bg_atlasapi import BrainGlobeAtlas
 
 sys.path.append("scripts")
 sys.path.append("schema")

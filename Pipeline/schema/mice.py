@@ -73,6 +73,7 @@ class Strain(dj.Lookup):
         ["Vglut2-cre", "Slc17a6tm2(cre)Lowl", "016963"],
         ["Vglut2-ai148", "016963x030328", "in house"],
         ["VGAT-ReaChR", "028862x024846", "in house"],
+        ["VGAT-cre", "'B6J.129S6(FVB)-Slc32a1tm2(cre)Lowl/MwarJ", "028862"],
     ]
 
 

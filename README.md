@@ -44,6 +44,10 @@ Titouan:
 - [x] Write a new test populate script for brainreg
 - [ ] Add auto date and time for scan populate script
 - [ ] Add exception handling for streamlit app
+- [ ] Add user report
+- [ ] Add post-processing for segmentation
+- [ ] Add result viewing code
+- [ ] Add possibility to run on several paths
 
 Cyril:
 - [x] Add cell segmentation code

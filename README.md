@@ -48,6 +48,7 @@ Titouan:
 - [ ] Add post-processing for segmentation
 - [ ] Add result viewing code
 - [ ] Add possibility to run on several paths
+- [ ] Add list of selected regions in Streamlit app
 
 Cyril:
 - [x] Add cell segmentation code

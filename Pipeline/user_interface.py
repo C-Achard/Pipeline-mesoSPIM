@@ -38,7 +38,7 @@ def compare_lists(list1, list2):
 def fetch_attempt_mouse(name):
     query = mice.Mouse() & f"mouse_name='{name}'"
     query = query.fetch(as_dict=True)
-    attempt = [table["attempt"] for table in query]
+    attempt = [table["mouse_id"] for table in query]
     return attempt
 
 
@@ -231,7 +231,7 @@ def main():
             "histogram_n_bins_floating": num_hist_bins,
             "histogram_n_bins_reference": num_hist_bins_ref,
         }
-        attempt = fetch_attempt_mouse(mouse_name)
+        attempt = fetch_attempt_scan(mouse_name)
         if not attempt:
             attempt = 0
         else:

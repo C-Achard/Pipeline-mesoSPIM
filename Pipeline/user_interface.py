@@ -158,9 +158,6 @@ def main():
     cfos_scan_path = st.text_input(
         "cFOS scan path", value=Path("").resolve() / Path("cfos.tiff")
     )
-    scan_time_stamp = st.text_input(
-        "Time (yyyy-mm-dd h:m:sec)", value="2023-11-11 16:16:16"
-    )
     rois_choice = st.selectbox(
         "ROIs",
         [

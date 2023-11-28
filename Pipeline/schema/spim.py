@@ -46,7 +46,7 @@ class ROIs(dj.Manual):
 
     definition = """
     -> Scan
-    id_keys: int
+    ids_key: int
     ---
     regions_of_interest_ids : longblob
     """

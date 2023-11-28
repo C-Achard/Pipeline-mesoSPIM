@@ -287,6 +287,8 @@ def main():
         logger.info(f"File for cFOS : {cfos_path}")
         logger.info(f"File for autofluo : {autofluo_path}")
 
+        time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         scan.insert1(
             (
                 mouse_name.lower(),
@@ -294,7 +296,7 @@ def main():
                 username,
                 autofluo_path,
                 cfos_path,
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                time_stamp,
             ),
             skip_duplicates=True,
         )
@@ -307,7 +309,7 @@ def main():
                 username,
                 autofluo_path,
                 cfos_path,
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                time_stamp,
                 attempt_roi,
                 rois_ids,
             ),

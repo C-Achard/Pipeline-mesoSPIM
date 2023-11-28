@@ -38,7 +38,11 @@ class BrainRegions:
         )
         self.coordinates_rois = self.compute_coordinates(Atlas_rois, roi_ids)
         del Atlas_rois
-        Atlas_regions, self.num_regions = self.compute_continuous_regions(
+        (
+            Atlas_regions,
+            self.Masks,
+            self.num_regions,
+        ) = self.compute_continuous_regions(
             registred_atlas_path, roi_ids, self.CFOS.shape
         )
         self.coordinates_regions = self.compute_coordinates(
@@ -88,7 +92,11 @@ class BrainRegions:
         # Rescale atlas to the shape of yur CFOS image
         rAtlas_regions = brg_utils.rescale_labels(rAtlas_regions, CFOS_shape)
 
-        return rAtlas_regions, num_regions
+        Masks = {}
+        for roi_id in range(1, num_regions + 1):
+            Masks[roi_id] = np.isin(rAtlas_regions, roi_id)
+
+        return rAtlas_regions, Masks, num_regions
 
     def compute_coordinates(self, rAtlas_regions_upscaled, list_ids):
         """Compute the coordinates of regions of the upscaled registred atlas.
@@ -111,6 +119,6 @@ class BrainRegions:
             coos = Coordinates(
                 mins[0], maxs[0], mins[1], maxs[1], mins[2], maxs[2]
             )
-            Coos[str(roi_id)] = coos
+            Coos[roi_id] = coos
 
         return Coos

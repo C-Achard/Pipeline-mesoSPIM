@@ -2,16 +2,14 @@ import sys
 import logging
 from pathlib import Path
 import login
-import determine_ids
 
 sys.path.append("scripts")
 sys.path.append("schema")
 
 login.connectToDatabase()
 from schema import mice, spim, user
-from scripts import brainreg_config
+from scripts import brainreg_config, determine_ids
 
-# USER_PATH = Path.home()
 SCAN_PATH = Path("/data/seb/CFOS_exp").resolve()
 assert SCAN_PATH.is_dir()
 print(SCAN_PATH)
@@ -60,8 +58,20 @@ def test_populate():
     )
 
     # rois_list = [656, 962, 767]
-    test_scan_part = spim.Scan.ROIs()
-    test_scan_part.insert1((0, rois_list), skip_duplicates=True)
+    test_scan_part = spim.ROIs()
+    test_scan_part.insert1(
+        (
+            "mouse_chickadee",
+            0,
+            "cyril_tit",
+            autofluo_path,
+            cfos_path,
+            time,
+            0,
+            rois_list,
+        ),
+        skip_duplicates=True,
+    )
 
     logger.info(test_scan)
 

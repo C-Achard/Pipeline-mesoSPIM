@@ -42,17 +42,18 @@ def fetch_attempt_mouse(name):
     return attempt
 
 
-def fetch_attempt_scan(name):
-    query = spim.Scan() & f"mouse_name='{name}'"
+def fetch_attempt_scan(name, mouse_id):
+    query = spim.Scan() & f"mouse_name='{name}'" & f"mouse_id='{mouse_id}'"
     query = query.fetch(as_dict=True)
     attempt = [table["scan_attempt"] for table in query]
     return attempt
 
 
-def return_all_list(name, scan_attempt):
+def return_all_list(name, mouse_id, scan_attempt):
     query = (
-        spim.Scan.ROIs()
+        spim.ROIs()
         & f"mouse_name='{name}'"
+        & f"mouse_id='{mouse_id}'"
         & f"scan_attempt='{scan_attempt}'"
     )
     query = query.fetch(as_dict=True)
@@ -205,6 +206,12 @@ def main():
         rois_ids = determine_ids.extract_ids_of_selected_areas(
             atlas_name=atlas_name, list_global_names=gn
         )
+        bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
+        df = bg_atlas.lookup_df
+        df["name"] = df["name"].str.lower()
+        filtered_df = df[df["id"].isin(rois_ids)]
+        st.write("The following areas have been selected")
+        st.dataframe(filtered_df)
 
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")
@@ -239,7 +246,7 @@ def main():
                 attempt = np.max(attempt) + 1
             else:
                 attempt = np.max(attempt)
-        scan_attempt = fetch_attempt_scan(mouse_name)
+        scan_attempt = fetch_attempt_scan(mouse_name, attempt)
         if not scan_attempt:
             scan_attempt = 0
         else:
@@ -247,7 +254,7 @@ def main():
                 scan_attempt = np.max(scan_attempt) + 1
             else:
                 scan_attempt = np.max(scan_attempt)
-        list_ids = return_all_list(mouse_name, scan_attempt)
+        list_ids = return_all_list(mouse_name, attempt, scan_attempt)
         attempt_roi = 0
         for key in list_ids:
             if compare_lists(list_ids[key], rois_ids):
@@ -259,7 +266,13 @@ def main():
 
         st.sidebar.write("Populating Mouse table")
         mice.Mouse().insert1(
-            (mouse_name, attempt, date_of_mouse, mouse_sex, mouse_strain),
+            (
+                mouse_name.lower(),
+                attempt,
+                date_of_mouse,
+                mouse_sex,
+                mouse_strain,
+            ),
             skip_duplicates=True,
         )
 
@@ -277,7 +290,7 @@ def main():
 
         scan.insert1(
             (
-                mouse_name,
+                mouse_name.lower(),
                 scan_attempt,
                 username,
                 autofluo_path,
@@ -287,8 +300,20 @@ def main():
             skip_duplicates=True,
         )
 
-        scan_part = spim.Scan.ROIs()
-        scan_part.insert1((attempt_roi, rois_ids), skip_duplicates=True)
+        scan_part = spim.ROIs()
+        scan_part.insert1(
+            (
+                mouse_name.lower(),
+                scan_attempt,
+                username,
+                autofluo_path,
+                cfos_path,
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                attempt_roi,
+                rois_ids,
+            ),
+            skip_duplicates=True,
+        )
 
         logger.info(scan)
 
@@ -309,6 +334,13 @@ def main():
         inference.populate()
 
         logger.info(inference)
+
+        analysis = spim.Analysis()
+        analysis.populate()
+
+        report = spim.Report()
+        report.populate()
+
         st.sidebar.write("Pipeline completed !")
 
 

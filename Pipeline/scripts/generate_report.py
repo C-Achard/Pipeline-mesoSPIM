@@ -7,8 +7,6 @@ from monai.transforms import AddChannel, RandSpatialCrop
 from schema.utils import gitWrapper, spim_sendEmail
 from scripts.generate_cell_plot import generate_plot
 
-FILE_STORAGE = Path.home() / Path("Desktop/Code/BRAINREG_DATA/test_data")
-
 
 @dataclass
 class Report:
@@ -37,13 +35,13 @@ class Report:
             message=msg_body,
         )
 
-        print(msg_body)  # TODO(cyril) : add email methods
+        print(msg_body)
         print(f"Number of samples: {len(samples)}, size: {samples[0].shape}\n")
 
     def write_to_csv(self):
         """Write stats summary to csv."""
         with Path.open(
-            f'{str(FILE_STORAGE)}/report_{self.stats_summary["mouse_name"]}_{self.stats_summary["attempt"]}.csv',
+            f'{str(self.results_path)}/report_{self.stats_summary["mouse_name"]}_{self.stats_summary["attempt"]}.csv',
             "w",
         ) as f:
             w = csv.writer(f)

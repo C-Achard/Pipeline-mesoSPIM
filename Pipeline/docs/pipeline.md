@@ -84,7 +84,7 @@ brainreg_config.write_json_file_brainreg(dictionary=DICT)
 
 ### Populating manual tables
 
-As described in the section [Organisation of the DataJoint tables](datajoint_tables.md), the pipeline needs to manually "populate" the tables *Mouse*, *User*, *Scan* and its sub-class *Scan.ROIs* before populating automatic tables downstream. *Mouse* and *User* are declared in **```schema.mice```** and **```schema.user```** respectively, whereas *Scan* and *Scan.ROIs* are declared in **```schema.spim```**  The different keys (parameters) are described in details in [Organisation of the DataJoint tables](datajoint_tables.md). An example code would be:
+As described in the section [Organisation of the DataJoint tables](datajoint_tables.md), the pipeline needs to manually "populate" the tables *Mouse*, *User*, *Scan* and its sub-class *Scan.ROIs* before populating automatic tables downstream. *Mouse* and *User* are declared in **```schema.mice```** and **```schema.user```** respectively, whereas *Scan* and *ROIs* are declared in **```schema.spim```**  The different keys (parameters) are described in details in [Organisation of the DataJoint tables](datajoint_tables.md). An example code would be:
 
 ```
 from schema import mice, spim, user
@@ -116,7 +116,7 @@ test_scan.insert1(
     skip_duplicates=True,
 )
 
-test_scan_part = spim.Scan.ROIs()
+test_scan_part = spim.ROIs()
 test_scan_part.insert1((0, rois_list), skip_duplicates=True)
 ```
 

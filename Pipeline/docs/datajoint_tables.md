@@ -31,11 +31,11 @@ class Scan(dj.Manual):
 ...
 ```
 
-### Scan.ROIs
+### ROIs
 
-This table is a sub-class of of *Scan* and represents the list of ids of regions of interest defined by the user on which the segmentation will be performed. This table is also manually defined by the user and has been initially implemented the avoid the necessity to run the brain registration whenever a new set of ids is given to the pipeline.
+This table represents the list of ids of regions of interest defined by the user on which the segmentation will be performed. This table is also manually defined by the user, inherits *Scan* and has been initially implemented the avoid the necessity to run the brain registration whenever a new set of ids is given to the pipeline.
 
-A *Scan.ROIs* table needs:
+A *ROIs* table needs:
 - An integer (unique number for each set of ids)
 - A list of ids representing labels on a registered atlas
 
@@ -45,15 +45,14 @@ The integer represeting the set of ids has to be implemented because DataJoint d
 
 ```
 @schema
-class Scan(dj.Manual):
+class ROIs(dj.Part):
+     """The list of ids of regions of interest for segmentation"""
+     definition = """
+     ids_key : int
+     ---
+     regions_of_interest_ids : longblob
+     """
 ...
-    class ROIs(dj.Part):
-        """The list of ids of regions of interest for segmentation"""
-        definition = """
-        ids_key : int
-        ---
-        regions_of_interest_ids : longblob
-        """
 ```
 
 ## BrainRegistration
@@ -93,7 +92,7 @@ Registered atlas
 
 ## BrainRegistrationResults
 
-This table inherits both *Scan* and *BrainRegistration* tables.
+This table inherits both *ROIs* and *BrainRegistration* tables.
 
 ```
 @schema
@@ -102,14 +101,14 @@ class BrainRegistrationResults(dj.Computed):
 
     definition = """
     -> BrainRegistration
-    -> Scan.ROIs
+    -> ROIs
     """
 ...
 ```
 
 ### BrainRegistrationResults.BrainregROI
 
-This table is a subclass of *BrainRegistrationResults* and stores, in the atlas space, the coordinates of the bounding box delimiting the different ROIS defined by the labels given by the user in *Scan.ROIs*.
+This table is a subclass of *BrainRegistrationResults* and stores, in the atlas space, the coordinates of the bounding box delimiting the different ROIS defined by the labels given by the user in *ROIs*.
 
 A *BrainRegistrationResults.BrainregROI* table stores:
 - The id of a single ROI
@@ -145,7 +144,7 @@ Registered atlas cropped with the ROIs determined by the primary motor cortex, t
 
 ### BrainRegistrationResults.ContinuousRegion
 
-This table is a subclass of *BrainRegistrationResults* and stores, in the atlas space, the coordinates of the bounding box delimiting the different continuous regions defined by the labels given by the user in *Scan.ROIs*. This table has been initially implemented to optimize memory management and some problems encountered with cellseg creating bad predictions on window edges.
+This table is a subclass of *BrainRegistrationResults* and stores, in the atlas space, the coordinates of the bounding box delimiting the different continuous regions defined by the labels given by the user in *ROIs*. This table has been initially implemented to optimize memory management and some problems encountered with cellseg creating bad predictions on window edges.
 
 A *BrainRegistrationResults.ContinuousRegion* table stores:
 - The id of a single continuous region

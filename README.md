@@ -53,3 +53,4 @@ Titouan:
 
 Cyril:
 - [x] Add cell segmentation code
+- [ ] Add post-processing for segmentation

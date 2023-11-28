@@ -35,25 +35,18 @@ def compare_lists(list1, list2):
     return l1 == l2
 
 
-def fetch_attempt_mouse(name):
-    query = mice.Mouse() & f"mouse_name='{name}'"
-    query = query.fetch(as_dict=True)
-    attempt = [table["mouse_id"] for table in query]
-    return attempt
-
-
-def fetch_attempt_scan(name, mouse_id):
-    query = spim.Scan() & f"mouse_name='{name}'" & f"mouse_id='{mouse_id}'"
+def fetch_attempt_scan(name, username):
+    query = spim.Scan() & f"mouse_name='{name}'" & f"name='{username}'"
     query = query.fetch(as_dict=True)
     attempt = [table["scan_attempt"] for table in query]
     return attempt
 
 
-def return_all_list(name, mouse_id, scan_attempt):
+def return_all_list(name, username, scan_attempt):
     query = (
         spim.ROIs()
         & f"mouse_name='{name}'"
-        & f"mouse_id='{mouse_id}'"
+        & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
     )
     query = query.fetch(as_dict=True)
@@ -205,14 +198,14 @@ def main():
         rois_ids = determine_ids.extract_ids_of_selected_areas(
             atlas_name=atlas_name, list_global_names=gn
         )
-        """
-        bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
-        df = bg_atlas.lookup_df
-        df["name"] = df["name"].str.lower()
-        filtered_df = df[df['id'].isin(rois_ids)]
-        st.write("The following areas have been selected")
-        st.dataframe(filtered_df)
-        """
+
+        if rois_ids:
+            bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
+            df = bg_atlas.lookup_df
+            df["name"] = df["name"].str.lower()
+            filtered_df = df[df["id"].isin(rois_ids)]
+            st.write("The following areas have been selected")
+            st.dataframe(filtered_df)
 
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")
@@ -239,15 +232,8 @@ def main():
             "histogram_n_bins_floating": num_hist_bins,
             "histogram_n_bins_reference": num_hist_bins_ref,
         }
-        attempt = fetch_attempt_mouse(mouse_name)
-        if not attempt:
-            attempt = 0
-        else:
-            if add_new_attempt:
-                attempt = np.max(attempt) + 1
-            else:
-                attempt = np.max(attempt)
-        scan_attempt = fetch_attempt_scan(mouse_name, attempt)
+        attempt = 0
+        scan_attempt = fetch_attempt_scan(mouse_name, username)
         if not scan_attempt:
             scan_attempt = 0
         else:
@@ -255,7 +241,7 @@ def main():
                 scan_attempt = np.max(scan_attempt) + 1
             else:
                 scan_attempt = np.max(scan_attempt)
-        list_ids = return_all_list(mouse_name, attempt, scan_attempt)
+        list_ids = return_all_list(mouse_name, username, scan_attempt)
         attempt_roi = 0
         for key in list_ids:
             if compare_lists(list_ids[key], rois_ids):

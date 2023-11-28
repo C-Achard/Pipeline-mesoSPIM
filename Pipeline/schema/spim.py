@@ -14,7 +14,8 @@ from scripts import (
     run_brainreg,
     inference,
     determine_ids,
-)  # generate_report
+    generate_report,
+)
 
 # from scripts.napari_brainreg_ui import open_brainreg_window
 from tifffile import imread, imwrite
@@ -118,6 +119,7 @@ class BrainRegistrationResults(dj.Computed):
         -> BrainRegistrationResults
         cont_region_id : int
         ---
+        mask: varchar(200)
         x_min : int
         x_max : int
         y_min : int
@@ -128,13 +130,17 @@ class BrainRegistrationResults(dj.Computed):
 
     def make(self, key):
         roi_ids = (ROIs() & key).fetch1("regions_of_interest_ids")
-        registred_atlas_path = (BrainRegistration() & key).fetch1(
-            "registration_path"
-        ) + "/registered_atlas.tiff"
+        parent_path = (BrainRegistration() & key).fetch1("registration_path")
+        registred_atlas_path = parent_path + "/registered_atlas.tiff"
         CFOS_path = (Scan() & key).fetch1("cfos_path")
         brain_regions = rois_brainreg.BrainRegions(
             registred_atlas_path, CFOS_path, roi_ids
         )
+        for k, value in brain_regions.Masks.items():
+            np.save(parent_path / Path("mask_cont_reg_" + str(k)), value)
+
+        key["semantic_labels"] = result_path_reg
+        key["instance_labels"] = result_path_reg_instance
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
@@ -153,6 +159,7 @@ class BrainRegistrationResults(dj.Computed):
             dict(
                 key,
                 roi_id=num,
+                mask=parent_path / Path("mask_cont_reg_" + str(num)),
                 x_min=brain_regions.coordinates_rois[num].xmin,
                 x_max=brain_regions.coordinates_rois[num].xmax,
                 y_min=brain_regions.coordinates_rois[num].ymin,
@@ -256,4 +263,99 @@ class Inference(dj.Computed):
         key["semantic_labels"] = result_path_reg
         key["instance_labels"] = result_path_reg_instance
         key["stats"] = result_path_reg_stats
+        self.insert1(key)
+
+
+@schema
+class Analysis(dj.Computed):
+    """Analysis of the instance segmentation."""
+
+    definition = """
+    -> Inference
+    ---
+    cell_counts : int
+    filled_pixels: int
+    density: float
+    image_size: longblob
+    centroids: longblob
+    volumes: longblob
+    sphericity: longblob
+    """
+
+    def make(self, key):
+        """Runs analysis on the instance segmentation."""
+
+        labels_path = (Inference & key).fetch1("instance_labels")
+        labels = imio.load_any(labels_path)
+        stats_path = (Inference & key).fetch1("stats")
+        stats = read_csv_file(stats_path)
+
+        key["cell_counts"] = np.unique(labels.flatten()).size - 1
+        key["density"] = stats.filling_ratio
+        key["image_size"] = stats.image_size
+        key["centroids"] = [
+            stats.centroid_x,
+            stats.centroid_y,
+            stats.centroid_z,
+        ]
+        key["volumes"] = stats.volume
+        key["filled_pixels"] = stats.total_filled_volume
+        key["sphericity"] = stats.sphericity_ax
+
+        self.insert1(key)
+
+    def get_stats_summary(self, key):
+        """Returns all stats to be included in the user report."""
+        return (self & key).fetch1()
+
+
+@schema
+class Report(dj.Computed):
+    """Report to be sent to user for review."""
+
+    definition = """
+    -> Analysis
+    date : date
+    ---
+    instance_samples : longblob
+    stats_summary : longblob
+    """
+
+    def make(self, key):
+        """Generates a report and sends it to the user."""
+        scan_name = (Scan() & key).fetch1("cfos_path")
+
+        roi_id = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "cont_region_id"
+        )
+        roi_name = brg_utils.get_atlas_region_name_from_id(roi_id)
+
+        email = (user.User() & key).fetch1("email")
+        username = (user.User() & key).fetch1("name")
+        stats = (Analysis() & key).get_stats_summary(key)
+        labels_path = (Inference() & key).fetch1("instance_labels")
+        labels = imio.load_any(labels_path)
+
+        parent_path = (BrainRegistration() & key).fetch1("registration_path")
+        result_path = parent_path / Path("inference_results")
+
+        logger.debug(stats)
+
+        report = generate_report.Report(
+            email=email,
+            user=username,
+            scan_name=scan_name,
+            roi_name=roi_name,
+            results_path=result_path,
+            stats_summary=stats,
+            labels=labels,
+        )
+
+        report.send_report()
+        report.write_to_csv()
+
+        key["date"] = datetime.today()
+        key["stats_summary"] = stats
+        key["instance_samples"] = labels
+
         self.insert1(key)

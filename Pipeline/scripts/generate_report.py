@@ -35,7 +35,7 @@ class Report:
             message=msg_body,
         )
 
-        print(msg_body)
+        print(msg_body)  # TODO(cyril) : add email methods
         print(f"Number of samples: {len(samples)}, size: {samples[0].shape}\n")
 
     def write_to_csv(self):

@@ -157,4 +157,5 @@ cython_debug/
 /test_images/
 *.tif
 src/napari-cellseg3d/
-Pipeline/docs/_build/
+/Pipeline/docs/_build/
+/Pipeline/login*

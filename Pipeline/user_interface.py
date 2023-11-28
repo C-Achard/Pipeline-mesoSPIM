@@ -92,7 +92,9 @@ def main():
     preprocessing_params = st.text_input("Preprocessing", value="default")
     sort_input_bool = st.checkbox("Sort input file", value=False)
     save_orientation = st.checkbox("Save orientation", value=False)
+
     st.header("Advanced parameters of the brain registration")
+
     debug = st.checkbox("Debug", value=False)
     affine_downsampling_steps = st.number_input(
         "Affine downsampling steps", value=6, min_value=0, step=1, format="%d"
@@ -292,7 +294,7 @@ def main():
                 username,
                 autofluo_path,
                 cfos_path,
-                scan_time_stamp,
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             ),
             skip_duplicates=True,
         )

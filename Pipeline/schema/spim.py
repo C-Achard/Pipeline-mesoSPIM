@@ -9,7 +9,13 @@ import pandas as pd
 import user
 import mice
 from utils.path_dataclass import PathConfig
-from scripts import rois_brainreg, run_brainreg, inference, generate_report
+from scripts import (
+    rois_brainreg,
+    run_brainreg,
+    inference,
+    generate_report,
+    determine_ids,
+)
 
 # from scripts.napari_brainreg_ui import open_brainreg_window
 from tifffile import imread, imwrite

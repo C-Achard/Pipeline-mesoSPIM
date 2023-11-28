@@ -38,7 +38,7 @@ def compare_lists(list1, list2):
 def fetch_attempt_mouse(name):
     query = mice.Mouse() & f"mouse_name='{name}'"
     query = query.fetch(as_dict=True)
-    attempt = [table["attempt"] for table in query]
+    attempt = [table["mouse_id"] for table in query]
     return attempt
 
 

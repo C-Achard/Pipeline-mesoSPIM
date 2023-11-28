@@ -41,7 +41,15 @@ Titouan:
   - [x] Go from one anatomical space to another (sample <-> atlas) using transformation matrices
   - [x] Re-orient the data
   - [x] Crop ROIs from brainreg results for cell segmentation
-- [ ] Write a new test populate script for brainreg
+- [x] Write a new test populate script for brainreg
+- [ ] Add auto date and time for scan populate script
+- [ ] Add exception handling for streamlit app
+- [ ] Add user report
+- [ ] Add post-processing for segmentation
+- [ ] Add result viewing code
+- [ ] Add possibility to run on several paths
+- [ ] Add list of selected regions in Streamlit app
+- [ ] Add more verbose output to cropping of resized ROIs in atlas space
 
 Cyril:
 - [x] Add cell segmentation code

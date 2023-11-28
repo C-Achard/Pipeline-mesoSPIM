@@ -70,7 +70,7 @@ def extract_ids_of_selected_areas(
         if list_atlas_names:
             for atlas_name in list_atlas_names:
                 rslt_df = df.loc[df["name"] == atlas_name.lower()]
-                if rstl_df.empty:
+                if rslt_df.empty:
                     print(atlas_name + ": not part of the atlas nomenclature")
                 else:
                     dict_of_ids[atlas_name.lower()] = rslt_df["id"].values[0]

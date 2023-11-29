@@ -63,7 +63,7 @@ def test_populate():
     test_scan_part.insert1(
         (
             "mouse_chickadee",
-            "cyril_tit",
+            0,
             0,
             rois_list,
         ),

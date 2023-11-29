@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
-from monai.transforms import AddChannel, RandSpatialCrop
+from monai.transforms import RandSpatialCrop
 from schema.utils import gitWrapper, spim_sendEmail
 from scripts.generate_cell_plot import generate_plot
 
@@ -64,7 +64,7 @@ class Report:
 
         # csv = self.image_stats.get_dict()
 
-        labels = AddChannel()(self.labels)
+        labels = np.expand_dims(self.labels)
         samples = [
             np.squeeze(
                 RandSpatialCrop([16, 16, 16], random_size=False)(labels)

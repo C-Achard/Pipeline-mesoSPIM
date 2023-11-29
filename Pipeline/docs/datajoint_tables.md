@@ -219,3 +219,59 @@ name: inf-instance
 ---
 Results of the instance segmentation on the bounding box of the continuous region
 ```
+
+### Analysis
+
+This table, inheriting *Inference*, automatically stores different statistical data from the stats.csv file from *Inference*.
+
+An *Analysis* table stores:
+- The number of cells segmented in the continuous region
+- Number of pixels that are filled
+- The density of cells
+- The size of the imgage
+- The centroids
+- The volumes
+- The sphericity
+
+```
+@schema
+class Analysis(dj.Computed):
+    """Analysis of the instance segmentation."""
+
+    definition = """
+    -> Inference
+    ---
+    cell_counts : int
+    filled_pixels: int
+    density: float
+    image_size: longblob
+    centroids: longblob
+    volumes: longblob
+    sphericity: longblob
+    """
+...
+```
+
+### Report
+
+This last table, inheriting *Analysis* will simply send the summary of the statistical data from *Analysis* at the specified email address.
+
+A *Report* table stores:
+- The date
+- The instance samples
+- The statistics summary
+
+```
+@schema
+class Report(dj.Computed):
+    """Report to be sent to user for review."""
+
+    definition = """
+    -> Analysis
+    date : date
+    ---
+    instance_samples : longblob
+    stats_summary : longblob
+    """
+...
+```

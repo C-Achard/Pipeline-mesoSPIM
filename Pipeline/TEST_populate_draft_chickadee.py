@@ -91,6 +91,16 @@ def test_populate():
 
     logger.info(test_inference)
 
+    test_analysis = spim.Analysis()
+    test_analysis.populate()
+
+    logger.info(test_analysis)
+
+    test_report = spim.Report()
+    test_report.populate()
+
+    logger.info(test_report)
+
 
 if __name__ == "__main__":
     login.connectToDatabase()

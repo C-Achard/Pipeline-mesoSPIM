@@ -128,7 +128,7 @@ ROI IDs can be determined in 3 ways:
 
 ### Populating automatic tables
 
-The tables *BrainRegistration*, *BrainRegistrationResults*, *BrainRegistrationResults.BrainregROI*, *BrainRegistrationResults.ContinuousRegion* and *Inference* inherit the aforementionned upstream tables and are populated automatically when the **```.populate```** method is called. They represent the last steps of the pipeline. The order in which these tables are sequentially populated should be respected:
+The tables *BrainRegistration*, *BrainRegistrationResults*, *BrainRegistrationResults.BrainregROI*, *BrainRegistrationResults.ContinuousRegion*, *Inference*, *Analysis* and *Report* inherit the aforementionned upstream tables and are populated automatically when the **```.populate```** method is called. They represent the last steps of the pipeline. The order in which these tables are sequentially populated should be respected:
 
 ```
 test_brainreg = spim.BrainRegistration()
@@ -139,6 +139,12 @@ test_brg_results.populate()
 
 test_inference = spim.Inference()
 test_inference.populate()
+
+test_analysis = spim.Analysis()
+test_analysis.populate()
+
+test_report = spim.Report()
+test_report.populate()
 ```
 
 ## (2) Running the pipeline using Streamlit

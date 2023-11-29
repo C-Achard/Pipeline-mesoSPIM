@@ -1,11 +1,12 @@
 import os
 import datajoint as dj
-import login
 import matplotlib.pyplot as plt
 import sys
 
-sys.path.append("./scripts")
 sys.path.append("./schema")
+sys.path.append("./")
+
+import login
 
 login.connectToDatabase()
 from schema import mice, spim, user

@@ -6,6 +6,8 @@ import login
 sys.path.append("scripts")
 sys.path.append("schema")
 
+login.connectToDatabase()
+
 from schema import mice, spim, user
 from scripts import brainreg_config, determine_ids
 

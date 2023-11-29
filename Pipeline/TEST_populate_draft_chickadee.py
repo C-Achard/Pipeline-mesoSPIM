@@ -63,11 +63,7 @@ def test_populate():
     test_scan_part.insert1(
         (
             "mouse_chickadee",
-            0,
             "cyril_tit",
-            autofluo_path,
-            cfos_path,
-            time,
             0,
             rois_list,
         ),

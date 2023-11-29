@@ -138,14 +138,12 @@ class BrainRegistrationResults(dj.Computed):
         )
         for k, value in brain_regions.Masks.items():
             np.save(parent_path / Path("mask_cont_reg_" + str(k)), value)
-
-        key["semantic_labels"] = result_path_reg
-        key["instance_labels"] = result_path_reg_instance
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
                 cont_region_id=num,
+                mask=parent_path / Path("mask_cont_reg_" + str(num)),
                 x_min=brain_regions.coordinates_regions[num].xmin,
                 x_max=brain_regions.coordinates_regions[num].xmax,
                 y_min=brain_regions.coordinates_regions[num].ymin,

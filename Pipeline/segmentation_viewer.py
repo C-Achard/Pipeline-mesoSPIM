@@ -27,7 +27,16 @@ def display_cropped_continuous_cfos_napari(
     )
     query_reg = query_reg.fetch(as_dict=True)
     Masks = {
-        table["cont_region_id"]: np.load(table["mask"]) for table in query_reg
+        table["cont_region_id"]: [
+            np.load(table["mask"]),
+            table["x_min"],
+            table["x_xmax"],
+            table["y_min"],
+            table["y_max"],
+            table["z_min"],
+            table["z_max"],
+        ]
+        for table in query_reg
     }
 
     query_instance = (
@@ -44,7 +53,13 @@ def display_cropped_continuous_cfos_napari(
     }
     viewer = naparari.Viewer()
     for key in Masks:
-        viewer.add_labels(Instance_labels[key][Masks[key]])
+        sample_space = np.zeros_like(Masks)
+        sample_space[
+            Masks[key][1] : Masks[key][2] + 1,
+            Masks[key][3] : Masks[key][4] + 1,
+            Masks[key][5] : Masks[key][6] + 1,
+        ] = Instance_labels[key]
+        viewer.add_labels(sample_space[Masks[key]])
 
 
 if __name__ == "__main__":

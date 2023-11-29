@@ -143,6 +143,7 @@ class BrainRegistrationResults(dj.Computed):
             dict(
                 key,
                 cont_region_id=num,
+                mask=parent_path / Path("mask_cont_reg_" + str(num)),
                 x_min=brain_regions.coordinates_regions[num].xmin,
                 x_max=brain_regions.coordinates_regions[num].xmax,
                 y_min=brain_regions.coordinates_regions[num].ymin,
@@ -156,7 +157,6 @@ class BrainRegistrationResults(dj.Computed):
             dict(
                 key,
                 roi_id=num,
-                mask=parent_path / Path("mask_cont_reg_" + str(num)),
                 x_min=brain_regions.coordinates_rois[num].xmin,
                 x_max=brain_regions.coordinates_rois[num].xmax,
                 y_min=brain_regions.coordinates_rois[num].ymin,

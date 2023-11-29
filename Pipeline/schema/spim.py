@@ -288,7 +288,7 @@ class Analysis(dj.Computed):
         labels_path = (Inference & key).fetch1("instance_labels")
         labels = imio.load_any(labels_path)
         stats_path = (Inference & key).fetch1("stats")
-        stats = read_csv_file(stats_path)
+        stats = pd.read_csv(stats_path)
 
         key["cell_counts"] = np.unique(labels.flatten()).size - 1
         key["density"] = stats.filling_ratio

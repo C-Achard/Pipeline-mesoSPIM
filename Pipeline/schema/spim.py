@@ -288,16 +288,16 @@ class Analysis(dj.Computed):
         stats = pd.read_csv(stats_path)
 
         key["cell_counts"] = np.unique(labels.flatten()).size - 1
-        key["density"] = stats["filling_ratio"]
-        key["image_size"] = stats["image_size"]
+        key["density"] = stats["Filling ratio"]
+        key["image_size"] = stats["Image size"]
         key["centroids"] = [
-            stats["centroid_x"],
-            stats["centroid_y"],
-            stats["centroid_z"],
+            stats["Centroid x"],
+            stats["Centroid y"],
+            stats["Centroid z"],
         ]
-        key["volumes"] = stats["volume"]
-        key["filled_pixels"] = stats["total_filled_volume"]
-        key["sphericity"] = stats["sphericity_ax"]
+        key["volumes"] = stats["Volume"]
+        key["filled_pixels"] = stats["Total object volume (pixels)"]
+        key["sphericity"] = stats["Sphericity (axes)"]
 
         self.insert1(key)
 

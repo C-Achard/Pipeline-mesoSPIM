@@ -64,7 +64,7 @@ class Report:
 
         # csv = self.image_stats.get_dict()
 
-        labels = np.expand_dims(self.labels)
+        labels = np.expand_dims(self.labels, axis=0)
         samples = [
             np.squeeze(
                 RandSpatialCrop([16, 16, 16], random_size=False)(labels)

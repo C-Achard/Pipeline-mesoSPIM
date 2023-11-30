@@ -287,9 +287,11 @@ class Analysis(dj.Computed):
         stats_path = (Inference() & key).fetch1("stats")
         stats = pd.read_csv(stats_path)
 
+        print(stats["Filling ratio"].values)
+        print(stats["Total object volume (pixels)"].values)
+
         key["cell_counts"] = np.unique(labels.flatten()).size - 1
         key["density"] = stats["Filling ratio"].values
-        print(stats["Filling ratio"].values)
         key["image_size"] = stats["Image size"].values
         key["centroids"] = [
             stats["Centroid x"].values,
@@ -298,7 +300,6 @@ class Analysis(dj.Computed):
         ]
         key["volumes"] = stats["Volume"].values
         key["filled_pixels"] = stats["Total object volume (pixels)"].values
-        print(stats["Total object volume (pixels)"].values)
         key["sphericity"] = stats["Sphericity (axes)"].values
 
         self.insert1(key)

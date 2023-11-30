@@ -282,22 +282,26 @@ class Analysis(dj.Computed):
     def make(self, key):
         """Runs analysis on the instance segmentation."""
 
-        labels_path = (Inference & key).fetch1("instance_labels")
+        labels_path = (Inference() & key).fetch1("instance_labels")
         labels = imio.load_any(labels_path)
-        stats_path = (Inference & key).fetch1("stats")
+        stats_path = (Inference() & key).fetch1("stats")
         stats = pd.read_csv(stats_path)
 
         key["cell_counts"] = np.unique(labels.flatten()).size - 1
         key["density"] = stats["Filling ratio"]
         key["image_size"] = stats["Image size"]
+        print(stats["Image size"])
         key["centroids"] = [
             stats["Centroid x"],
             stats["Centroid y"],
             stats["Centroid z"],
         ]
         key["volumes"] = stats["Volume"]
+        print(stats["Volume"])
         key["filled_pixels"] = stats["Total object volume (pixels)"]
+        print(stats["Total object volume (pixels)"])
         key["sphericity"] = stats["Sphericity (axes)"]
+        print(stats["Sphericity (axes)"])
 
         self.insert1(key)
 

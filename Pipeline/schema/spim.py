@@ -327,7 +327,7 @@ class Report(dj.Computed):
         roi_id = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
             "cont_region_id"
         )
-        roi_name = brg_utils.get_atlas_region_name_from_id(roi_id)
+        roi_name = "Continuous region " + str(roi_id)
 
         email = (user.User() & key).fetch1("email")
         username = (user.User() & key).fetch1("name")

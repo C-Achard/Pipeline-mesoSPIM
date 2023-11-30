@@ -26,6 +26,7 @@ def send_report_email(email, filename, attachment_file, message, error=False):
     text = msg.as_string()
 
     scan_name = Path(filename).name
+    print(filename)
 
     if error:
         msg["Subject"] = f"Sorry the pipeline failed for Scan: {scan_name}"

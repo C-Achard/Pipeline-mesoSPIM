@@ -288,7 +288,9 @@ class Analysis(dj.Computed):
         stats = pd.read_csv(stats_path)
 
         print(stats["Filling ratio"].values)
+        print(np.sum(stats["Filling ratio"].values))
         print(stats["Total object volume (pixels)"].values)
+        print(np.sum(stats["Total object volume (pixels)"].values))
 
         key["cell_counts"] = np.unique(labels.flatten()).size - 1
         key["density"] = stats["Filling ratio"].values

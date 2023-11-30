@@ -41,7 +41,7 @@ def send_report_email(email, filename, attachment_file, message, error=False):
         )
 
         msg.attach(MIMEText(body, "plain"))
-        with Path.open(filename, "rb") as attachment:
+        with Path(filename).open(mode="rb") as attachment:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(attachment.read())
             encoders.encode_base64(part)

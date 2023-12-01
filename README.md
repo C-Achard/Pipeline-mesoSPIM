@@ -42,14 +42,14 @@ Titouan:
   - [x] Re-orient the data
   - [x] Crop ROIs from brainreg results for cell segmentation
 - [x] Write a new test populate script for brainreg
-- [ ] Add auto date and time for scan populate script
-- [ ] Add exception handling for streamlit app
-- [ ] Add user report
+- [x] Add auto date and time for scan populate script
+- [x] Add exception handling for streamlit app
+- [x] Add user report (but NOT send email)
 - [ ] Add post-processing for segmentation
-- [ ] Add result viewing code
+- [x] Add result viewing code
 - [ ] Add possibility to run on several paths
-- [ ] Add list of selected regions in Streamlit app
-- [ ] Add more verbose output to cropping of resized ROIs in atlas space
+- [x] Add list of selected regions in Streamlit app
+- [x] Add more verbose output to cropping of resized ROIs in atlas space
 
 Cyril:
 - [x] Add cell segmentation code

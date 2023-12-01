@@ -58,7 +58,7 @@ def display_cropped_continuous_cfos_napari(
             Masks[key][3] : Masks[key][4] + 1,
             Masks[key][5] : Masks[key][6] + 1,
         ] = Instance_labels[key]
-        viewer.add_labels(sample_space[Masks[key][0]])
+        viewer.add_labels(sample_space)
 
 
 if __name__ == "__main__":

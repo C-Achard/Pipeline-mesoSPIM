@@ -36,7 +36,7 @@ def compare_lists(list1, list2):
 
 
 def fetch_attempt_scan(name, username):
-    query = spim.Scan() & f"mouse_name='{name}'" & f"name='{username}'"
+    query = spim.Scan() & f"mouse_name='{name}'"
     query = query.fetch(as_dict=True)
     attempt = [table["scan_attempt"] for table in query]
     return attempt
@@ -44,10 +44,7 @@ def fetch_attempt_scan(name, username):
 
 def return_all_list(name, username, scan_attempt):
     query = (
-        spim.ROIs()
-        & f"mouse_name='{name}'"
-        & f"name='{username}'"
-        & f"scan_attempt='{scan_attempt}'"
+        spim.ROIs() & f"mouse_name='{name}'" & f"scan_attempt='{scan_attempt}'"
     )
     query = query.fetch(as_dict=True)
     list_rois = {

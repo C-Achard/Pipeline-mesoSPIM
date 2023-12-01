@@ -38,6 +38,8 @@ def display_cropped_continuous_cfos_napari(
         for table in query_reg
     }
 
+    print(Masks)
+
     query_instance = (
         spim.Inference()
         & f"mouse_name='{name}'"
@@ -49,6 +51,8 @@ def display_cropped_continuous_cfos_napari(
         table["cont_region_id"]: imio.load_any(table["instance_labels"])
         for table in query_instance
     }
+
+    print(Instance_labels)
 
 
 if __name__ == "__main__":

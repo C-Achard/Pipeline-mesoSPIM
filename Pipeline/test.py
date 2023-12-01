@@ -29,7 +29,7 @@ def display_cropped_continuous_cfos_napari(
         table["cont_region_id"]: [
             np.load(table["mask"] + ".npy"),
             table["x_min"],
-            table["x_xmax"],
+            table["x_max"],
             table["y_min"],
             table["y_max"],
             table["z_min"],
@@ -41,7 +41,6 @@ def display_cropped_continuous_cfos_napari(
     query_instance = (
         spim.Inference()
         & f"mouse_name='{name}'"
-        & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
         & f"ids_key='{ids_key}'"
     )

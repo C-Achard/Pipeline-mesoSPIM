@@ -52,7 +52,7 @@ def display_cropped_continuous_cfos_napari(
 
     viewer = naparari.Viewer()
     for key in Masks:
-        sample_space = np.zeros_like(Masks)
+        sample_space = np.zeros_like(Masks[0])
         sample_space[
             Masks[key][1] : Masks[key][2] + 1,
             Masks[key][3] : Masks[key][4] + 1,

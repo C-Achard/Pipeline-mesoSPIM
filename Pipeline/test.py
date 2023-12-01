@@ -51,3 +51,10 @@ def display_cropped_continuous_cfos_napari(
         table["cont_region_id"]: imio.load_any(table["instance_labels"])
         for table in query_instance
     }
+
+
+if __name__ == "__main__":
+    login.connectToDatabase()
+    display_cropped_continuous_cfos_napari(
+        "mouse_chickadee", "cyril_tit", 0, 0
+    )

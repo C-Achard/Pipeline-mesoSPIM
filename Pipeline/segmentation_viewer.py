@@ -38,8 +38,6 @@ def display_cropped_continuous_cfos_napari(
         for table in query_reg
     }
 
-    print(Masks)
-
     query_instance = (
         spim.Inference()
         & f"mouse_name='{name}'"
@@ -52,7 +50,6 @@ def display_cropped_continuous_cfos_napari(
         for table in query_instance
     }
 
-    """
     viewer = naparari.Viewer()
     for key in Masks:
         sample_space = np.zeros_like(Masks)
@@ -62,7 +59,6 @@ def display_cropped_continuous_cfos_napari(
             Masks[key][5] : Masks[key][6] + 1,
         ] = Instance_labels[key]
         viewer.add_labels(sample_space[Masks[key][0]])
-    """
 
 
 if __name__ == "__main__":

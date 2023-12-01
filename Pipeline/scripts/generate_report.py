@@ -41,7 +41,7 @@ class Report:
     def write_to_csv(self):
         """Write stats summary to csv."""
         with Path.open(
-            f'{str(self.results_path)}/report_{self.stats_summary["mouse_name"]}_{self.stats_summary["attempt"]}.csv',
+            f'{str(self.results_path)}/report_{self.stats_summary["mouse_name"]}_{self.stats_summary["scan_attempt"]}.csv',
             "w",
         ) as f:
             w = csv.writer(f)

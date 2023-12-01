@@ -21,16 +21,15 @@ def display_cropped_continuous_cfos_napari(
     query_reg = (
         spim.BrainRegistrationResults.ContinuousRegion()
         & f"mouse_name='{name}'"
-        & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
         & f"ids_key='{ids_key}'"
     )
     query_reg = query_reg.fetch(as_dict=True)
     Masks = {
         table["cont_region_id"]: [
-            np.load(table["mask"]),
+            np.load(table["mask"] + ".npy"),
             table["x_min"],
-            table["x_xmax"],
+            table["x_max"],
             table["y_min"],
             table["y_max"],
             table["z_min"],
@@ -42,7 +41,6 @@ def display_cropped_continuous_cfos_napari(
     query_instance = (
         spim.Inference()
         & f"mouse_name='{name}'"
-        & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
         & f"ids_key='{ids_key}'"
     )
@@ -51,6 +49,7 @@ def display_cropped_continuous_cfos_napari(
         table["cont_region_id"]: imio.load_any(table["instance_labels"])
         for table in query_instance
     }
+
     viewer = naparari.Viewer()
     for key in Masks:
         sample_space = np.zeros_like(Masks)

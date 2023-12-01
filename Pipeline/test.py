@@ -21,13 +21,15 @@ def display_cropped_continuous_cfos_napari(
     query_reg = (
         spim.BrainRegistrationResults.ContinuousRegion()
         & f"mouse_name='{name}'"
+        & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
         & f"ids_key='{ids_key}'"
     )
     query_reg = query_reg.fetch(as_dict=True)
+    query_reg = [table for table in query_reg if table["name"] == username]
     Masks = {
         table["cont_region_id"]: [
-            np.load(table["mask"]),
+            np.load(table["mask"] + ".npy"),
             table["x_min"],
             table["x_xmax"],
             table["y_min"],

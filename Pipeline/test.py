@@ -25,7 +25,6 @@ def display_cropped_continuous_cfos_napari(
         & f"ids_key='{ids_key}'"
     )
     query_reg = query_reg.fetch(as_dict=True)
-    query_reg = [table for table in query_reg if table["name"] == username]
     Masks = {
         table["cont_region_id"]: [
             np.load(table["mask"] + ".npy"),

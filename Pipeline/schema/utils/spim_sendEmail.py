@@ -17,7 +17,7 @@ sys.path.append("/data/datajoint/DataJoint_mathis/")
 
 def send_report_email(email, filename, attachment_file, message, error=False):
     """Send email to users with the summary report of the mouse."""
-    from_addr = "titouan.brossy@epfl.ch"
+    from_addr = "cyril.achard@epfl.ch"
     # specify users who will receive the email.
     to_addr = ["adaptivemotorlab@gmail.com", email]
     msg = MIMEMultipart()

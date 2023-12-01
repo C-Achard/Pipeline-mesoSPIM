@@ -21,7 +21,6 @@ def display_cropped_continuous_cfos_napari(
     query_reg = (
         spim.BrainRegistrationResults.ContinuousRegion()
         & f"mouse_name='{name}'"
-        & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
         & f"ids_key='{ids_key}'"
     )

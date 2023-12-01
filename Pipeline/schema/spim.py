@@ -350,7 +350,7 @@ class Report(dj.Computed):
             labels=labels,
         )
 
-        report.send_report()
+        # report.send_report()
         report.write_to_csv()
 
         key["date"] = datetime.today()

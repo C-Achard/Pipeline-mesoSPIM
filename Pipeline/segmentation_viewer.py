@@ -19,7 +19,7 @@ def display_cropped_continuous_cfos_napari(
     name, username, scan_attempt, ids_key
 ):
     query_reg = (
-        BrainRegistrationResults.ContinuousRegion()
+        spim.BrainRegistrationResults.ContinuousRegion()
         & f"mouse_name='{name}'"
         & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"
@@ -40,7 +40,7 @@ def display_cropped_continuous_cfos_napari(
     }
 
     query_instance = (
-        Inference()
+        spim.Inference()
         & f"mouse_name='{name}'"
         & f"name='{username}'"
         & f"scan_attempt='{scan_attempt}'"

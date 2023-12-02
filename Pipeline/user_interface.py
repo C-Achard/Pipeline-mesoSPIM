@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import login
 from bg_atlasapi import BrainGlobeAtlas
+from skimage.transform import resize
 
 sys.path.append("scripts")
 sys.path.append("schema")
@@ -23,10 +24,83 @@ except Exception as e:
     st.stop()
 
 from schema import mice, spim, user
-from scripts import brainreg_config, determine_ids
+from scripts import brainreg_config, determine_ids, brainreg_utils
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+def check_orientation(
+    orientation_str, brain_geom, atlas_name, autofluo_scan_path
+):
+    """
+    Function used to check that the input orientation is correct.
+    To do so it transforms the input data into the requested atlas
+    orientation, compute the average projection and displays it alongside
+    the atlas. It is then easier for the user to identify which dimension
+    should be swapped and avoid running the pipeline on wrongly aligned
+    data.
+    """
+
+    brain_geometry = brain_geom
+
+    # Load atlas and gather data
+    atlas = BrainGlobeAtlas(atlas_name)
+    if brain_geometry == "hemisphere_l":
+        atlas.reference[atlas.hemispheres == atlas.left_hemisphere_value] = 0
+    elif brain_geometry == "hemisphere_r":
+        atlas.reference[atlas.hemispheres == atlas.right_hemisphere_value] = 0
+    input_orientation = orientation_str
+    try:
+        data = imio.load_any(autofluo_scan_path)
+    except Exception as e:
+        st.error("Error loading the data. Make sure the path exists")
+        st.stop()
+
+    # Transform data to atlas orientation from user input
+    data_remapped = bg.map_stack_to(input_orientation, atlas.orientation, data)
+
+    # Compute average projection of atlas and remapped data
+    u_proj = []
+    u_proja = []
+    for i in range(3):
+        u_proj.append(np.mean(data_remapped, axis=i))
+        u_proja.append(np.mean(atlas.reference, axis=i))
+
+    # Display all projections with somewhat consistent scaling
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.image(u_proja[0], caption="Ref. proj. 0", use_column_width=True)
+
+    with col2:
+        st.image(u_proja[1], caption="Ref. proj. 1", use_column_width=True)
+
+    with col3:
+        st.image(u_proja[2], caption="Ref. proj. 2", use_column_width=True)
+
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+        st.image(
+            resize(u_proj[0], u_proja[0].shape),
+            caption="Input proj. 0",
+            use_column_width=True,
+        )
+
+    with col5:
+        st.image(
+            resize(u_proj[1], u_proja[1].shape),
+            caption="Input proj. 1",
+            use_column_width=True,
+        )
+
+    with col6:
+        st.image(
+            resize(u_proj[2], u_proja[2].shape),
+            caption="Input proj. 2",
+            use_column_width=True,
+        )
 
 
 def compare_lists(list1, list2):
@@ -57,6 +131,148 @@ def main():
     st.sidebar.write("Connected to DataJoint")
     st.title("DataJoint pipeline for brain registration and segmentation")
 
+    st.header("Parameters of mouse brain scans")
+
+    mouse_name = st.text_input("Mouse name", value="chickadee")
+    mouse_id = st.number_input("Mouse ID", value=0, step=1, format="%d")
+    date_of_mouse = st.text_input("Date (yyyy-mm-dd)", value="2023-11-11")
+    mouse_sex = st.selectbox("Sex", ["M", "F", "U"])
+    mouse_strain = st.text_input("Strain", value="WT")
+
+    autofluo_paths = []
+    cfos_paths = []
+
+    tr_mouse_names = []
+    tr_mouse_ids = []
+    tr_date_of_mouses = []
+    tr_mouse_sexs = []
+    tr_mouse_strains = []
+
+    mouse_names = []
+    mouse_ids = []
+    date_of_mouses = []
+    mouse_sexs = []
+    mouse_strains = []
+
+    dir = st.selectbox(
+        "Input path",
+        [
+            "Give single cFOS and autofluo input files",
+            "Give whole directory",
+        ],
+    )
+
+    if dir == "Give single cFOS and autofluo input files":
+        autofluo_scan_path = st.text_input(
+            "Autofluo scan path",
+            value=Path("").resolve() / Path("autofluo.tiff"),
+        )
+        cfos_scan_path = st.text_input(
+            "cFOS scan path", value=Path("").resolve() / Path("cfos.tiff")
+        )
+        elements = [string.strip() for string in autofluo_paths.split("_")]
+        tr_mouse_names.append(elements[0])
+        tr_mouse_ids.append(0)
+        tr_date_of_mouses.append("2023-11-11")
+        tr_mouse_sexs.append("M")
+        tr_mouse_strains.append("WT")
+        autofluo_paths.append(autofluo_scan_path)
+        cfos_paths.append(cfos_scan_path)
+
+    else:
+        dir_path = st.text_input("Directory path", value=Path("").resolve())
+        files_list = [
+            file.name for file in Path(dir_path).glob("*") if file.is_file()
+        ]
+        for filename in files_list:
+            elements = [string.strip() for string in filename.split("_")]
+            tr_mouse_names.append(elements[0])
+            tr_mouse_ids.append(0)
+            tr_date_of_mouses.append("2023-11-11")
+            tr_mouse_sexs.append("M")
+            tr_mouse_strains.append("WT")
+            autofluo_paths.append(
+                [string for string in elemnts if string == "Ch488"][0]
+            )
+            cfos_paths.append(
+                [string for string in elemnts if string == "Ch561"][0]
+            )
+
+    if tr_mouses_names:
+        Col1, Col2, Col3, Col4, Col5 = st.columns(5)
+        with Col1:
+            for i, mouse_name in enumerate(tr_mouse_names):
+                p = st.text_input(
+                    "mouse name n°" + str(i), value=mouse_name, key=i
+                )
+                mouse_names.append(p)
+        with Col2:
+            for i, mouse_id in enumerate(tr_mouse_ids):
+                p = st.text_input(
+                    "mouse id n°" + str(i), value=mouse_id, key=i
+                )
+                mouse_ids.append(p)
+        with Col3:
+            for i, date in enumerate(tr_date_of_mouses):
+                p = st.text_input(
+                    "date of birth n°" + str(i), value=date, key=i
+                )
+                date_of_mouses.append(p)
+        with Col4:
+            for i, sex in enumerate(tr_mouse_sexs):
+                p = st.text_input("mouse sex n°" + str(i), value=sex, key=i)
+                mouse_sexs.append(p)
+        with Col5:
+            for i, strain in enumerate(tr_mouse_strains):
+                st.text_input("mouse strain n°" + str(i), value=strain, key=i)
+                mouse_strains.append(p)
+
+    show_cfos_image = st.checkbox("show cFOS image", value=False)
+    if show_cfos_image:
+        if len(cfos_paths) > 1:
+            m = st.selectbox("Select the mouse", cfos_paths)
+            brain = imio.load_any(m)
+            u_proja = []
+            for i in range(3):
+                u_proja.append(np.mean(brain, axis=i))
+            # Display all projections with somewhat consistent scaling
+            col_1, col_2, col_3 = st.columns(3)
+            with col_1:
+                st.image(
+                    u_proja[0], caption="Ref. proj. 0", use_column_width=True
+                )
+
+            with col_2:
+                st.image(
+                    u_proja[1], caption="Ref. proj. 1", use_column_width=True
+                )
+
+            with col_3:
+                st.image(
+                    u_proja[2], caption="Ref. proj. 2", use_column_width=True
+                )
+        else:
+            brain = imio.load_any(cfos_paths[0])
+            u_proja = []
+            for i in range(3):
+                u_proja.append(np.mean(brain, axis=i))
+            # Display all projections with somewhat consistent scaling
+            col_1, col_2, col_3 = st.columns(3)
+            with col_1:
+                st.image(
+                    u_proja[0], caption="Ref. proj. 0", use_column_width=True
+                )
+
+            with col_2:
+                st.image(
+                    u_proja[1], caption="Ref. proj. 1", use_column_width=True
+                )
+
+            with col_3:
+                st.image(
+                    u_proja[2], caption="Ref. proj. 2", use_column_width=True
+                )
+
     st.header("Parameters of the brain registration")
     brainreg_result_path = st.text_input(
         "Path to output directory for brain registration",
@@ -79,6 +295,17 @@ def main():
     voxel_size_y = st.number_input("Voxel size y", step=0.01, format="%f")
     voxel_size_z = st.number_input("Voxel size z", step=0.01, format="%f")
     orientation_str = st.text_input("Orientation", value="sar")
+    check_orient = st.checkbox("Check orientation", value=False)
+    if check_orient:
+        if len(autofluo_paths) > 1:
+            c = st.selectbox("Select the mouse", autofluo_paths)
+            check_orientation(
+                orientation_str, brain_geom, atlas_name, autofluo_paths[0]
+            )
+        else:
+            check_orientation(
+                orientation_str, brain_geom, atlas_name, autofluo_paths[0]
+            )
     preprocessing_params = st.text_input("Preprocessing", value="default")
     sort_input_bool = st.checkbox("Sort input file", value=False)
     save_orientation = st.checkbox("Save orientation", value=False)
@@ -129,27 +356,12 @@ def main():
         "Number histogram bins reference", value=128, step=1, format="%d"
     )
 
-    st.header("Parameters of the mouse")
-    add_new_attempt = st.checkbox("Add new attempt", value=False, key=1)
-    mouse_name = st.text_input("Mouse name", value="chickadee")
-    date_of_mouse = st.text_input("Date (yyyy-mm-dd)", value="2023-11-11")
-    mouse_sex = st.selectbox("Sex", ["M", "F", "U"])
-    mouse_strain = st.text_input("Strain", value="WT")
-
     st.header("Parameters of the user")
     username = st.text_input("Name", value="cyril")
     useremail = st.text_input("Email", value="cyril.achard@epfl.ch")
 
-    st.header("Parameters of the brain scan")
-    add_new_parameters_brain_scan = st.checkbox(
-        "Add new attempt", value=False, key=2
-    )
-    autofluo_scan_path = st.text_input(
-        "Autofluo scan path", value=Path("").resolve() / Path("autofluo.tiff")
-    )
-    cfos_scan_path = st.text_input(
-        "cFOS scan path", value=Path("").resolve() / Path("cfos.tiff")
-    )
+    st.header("Determining the ROIs")
+    add_new_parameters_brain_scan = st.checkbox("Add new attempt", value=False)
     rois_choice = st.selectbox(
         "ROIs",
         [
@@ -195,7 +407,6 @@ def main():
         rois_ids = determine_ids.extract_ids_of_selected_areas(
             atlas_name=atlas_name, list_global_names=gn
         )
-
         if rois_ids:
             bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
             df = bg_atlas.lookup_df
@@ -230,104 +441,111 @@ def main():
             "histogram_n_bins_reference": num_hist_bins_ref,
         }
         attempt = 0
-        scan_attempt = fetch_attempt_scan(mouse_name, username)
-        if not scan_attempt:
-            scan_attempt = 0
-        else:
-            if add_new_parameters_brain_scan:
-                scan_attempt = np.max(scan_attempt) + 1
+
+        for (
+            mouse_name,
+            mouse_id,
+            date_of_mouse,
+            mouse_sex,
+            mouse_strain,
+        ) in zip(
+            mouse_names, mouse_ids, date_of_mouses, mouse_sexs, mouse_strains
+        ):
+            scan_attempt = fetch_attempt_scan(mouse_name, username)
+            if not scan_attempt:
+                scan_attempt = 0
             else:
-                scan_attempt = np.max(scan_attempt)
-        list_ids = return_all_list(mouse_name, username, scan_attempt)
-        attempt_roi = 0
-        for key in list_ids:
-            if compare_lists(list_ids[key], rois_ids):
-                attempt_roi = key
-                break
+                if add_new_parameters_brain_scan:
+                    scan_attempt = np.max(scan_attempt) + 1
+                else:
+                    scan_attempt = np.max(scan_attempt)
+            list_ids = return_all_list(mouse_name, username, scan_attempt)
+            attempt_roi = 0
+            for key in list_ids:
+                if compare_lists(list_ids[key], rois_ids):
+                    attempt_roi = key
+                    break
 
-        st.sidebar.write("Writing brainreg parameters into JSON file")
-        brainreg_config.write_json_file_brainreg(dictionary=params)
+            st.sidebar.write("Writing brainreg parameters into JSON file")
+            brainreg_config.write_json_file_brainreg(dictionary=params)
 
-        st.sidebar.write("Populating Mouse table")
-        mice.Mouse().insert1(
-            (
-                mouse_name.lower(),
-                attempt,
-                date_of_mouse,
-                mouse_sex,
-                mouse_strain,
-            ),
-            skip_duplicates=True,
-        )
+            st.sidebar.write("Populating Mouse table")
+            mice.Mouse().insert1(
+                (
+                    mouse_name.lower(),
+                    mouse_id,
+                    date_of_mouse,
+                    mouse_sex,
+                    mouse_strain,
+                ),
+                skip_duplicates=True,
+            )
 
-        st.sidebar.write("Populating User table")
-        user.User().insert1((username, useremail), skip_duplicates=True)
+            st.sidebar.write("Populating User table")
+            user.User().insert1((username, useremail), skip_duplicates=True)
 
-        st.sidebar.write("Populating Scan table")
-        scan = spim.Scan()
+            st.sidebar.write("Populating Scan table")
+            scan = spim.Scan()
 
-        cfos_path = Path(cfos_scan_path)
-        autofluo_path = Path(autofluo_scan_path)
+            cfos_path = Path(cfos_scan_path)
+            autofluo_path = Path(autofluo_scan_path)
 
-        logger.info(f"File for cFOS : {cfos_path}")
-        logger.info(f"File for autofluo : {autofluo_path}")
+            logger.info(f"File for cFOS : {cfos_path}")
+            logger.info(f"File for autofluo : {autofluo_path}")
 
-        time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        scan.insert1(
-            (
-                mouse_name.lower(),
-                scan_attempt,
-                username,
-                autofluo_path,
-                cfos_path,
-                time_stamp,
-            ),
-            skip_duplicates=True,
-        )
+            scan.insert1(
+                (
+                    mouse_name.lower(),
+                    scan_attempt,
+                    username,
+                    autofluo_path,
+                    cfos_path,
+                    time_stamp,
+                ),
+                skip_duplicates=True,
+            )
 
-        scan_part = spim.ROIs()
-        scan_part.insert1(
-            (
-                mouse_name.lower(),
-                scan_attempt,
-                username,
-                autofluo_path,
-                cfos_path,
-                time_stamp,
-                attempt_roi,
-                rois_ids,
-            ),
-            skip_duplicates=True,
-        )
+            scan_part = spim.ROIs()
+            scan_part.insert1(
+                (
+                    mouse_name.lower(),
+                    scan_attempt,
+                    attempt_roi,
+                    rois_ids,
+                ),
+                skip_duplicates=True,
+            )
 
-        logger.info(scan)
+            logger.info(scan)
 
-        st.sidebar.write("Starting brain registration")
-        brainreg = spim.BrainRegistration()
-        brainreg.populate()
+            st.sidebar.write("Starting brain registration")
+            brainreg = spim.BrainRegistration()
+            brainreg.populate()
 
-        logger.info(brainreg)
+            logger.info(brainreg)
 
-        st.sidebar.write("Extracting coordinates of ROIs")
-        brg_results = spim.BrainRegistrationResults()
-        brg_results.populate()
+            st.sidebar.write("Extracting coordinates of ROIs")
+            brg_results = spim.BrainRegistrationResults()
+            brg_results.populate()
 
-        logger.info(brg_results)
+            logger.info(brg_results)
 
-        st.sidebar.write("Starting segmentation")
-        inference = spim.Inference()
-        inference.populate()
+            st.sidebar.write("Starting segmentation")
+            inference = spim.Inference()
+            inference.populate()
 
-        logger.info(inference)
+            logger.info(inference)
 
-        analysis = spim.Analysis()
-        analysis.populate()
+            analysis = spim.Analysis()
+            analysis.populate()
 
-        report = spim.Report()
-        report.populate()
+            st.sidebar.write("Writing report")
+            report = spim.Report()
+            report.populate()
 
-        st.sidebar.write("Pipeline completed !")
+            st.sidebar.write("Pipeline completed !")
 
 
 if __name__ == "__main__":

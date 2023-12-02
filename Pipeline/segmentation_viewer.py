@@ -5,6 +5,7 @@ from pathlib import Path
 import login
 import napari
 import imio
+from scipy.sparse import load_npz
 
 sys.path.append("scripts")
 sys.path.append("schema")
@@ -27,7 +28,7 @@ def display_cropped_continuous_cfos_napari(
     query_reg = query_reg.fetch(as_dict=True)
     Masks = {
         table["cont_region_id"]: [
-            np.load(table["mask"] + ".npy"),
+            load_npz(table["mask"]).toarray().astype(bool),
             table["x_min"],
             table["x_max"],
             table["y_min"],
@@ -52,13 +53,12 @@ def display_cropped_continuous_cfos_napari(
 
     viewer = naparari.Viewer()
     for key in Masks:
-        sample_space = np.zeros_like(Masks[0])
-        sample_space[
+        Mask_cont = Masks[0][
             Masks[key][1] : Masks[key][2] + 1,
             Masks[key][3] : Masks[key][4] + 1,
             Masks[key][5] : Masks[key][6] + 1,
-        ] = Instance_labels[key]
-        viewer.add_labels(sample_space)
+        ]
+        viewer.add_labels(Instance_labels[key][Mask_cont])
 
 
 if __name__ == "__main__":

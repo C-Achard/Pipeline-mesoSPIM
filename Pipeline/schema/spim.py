@@ -121,6 +121,7 @@ class BrainRegistrationResults(dj.Computed):
         cont_region_id : int
         ---
         mask: varchar(200)
+        mask_shape: longblob
         x_min : int
         x_max : int
         y_min : int
@@ -138,14 +139,17 @@ class BrainRegistrationResults(dj.Computed):
             registred_atlas_path, CFOS_path, roi_ids
         )
         for k, value in brain_regions.Masks.items():
-            sparse_matrix = csr_matrix(value)
-            save_npz(parent_path / Path("mask_cont_reg_" + str(k)), value)
+            sparse_matrix = csr_matrix(value.reshape(value.shape[0], -1))
+            save_npz(
+                parent_path / Path("mask_cont_reg_" + str(k)), sparse_matrix
+            )
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
                 cont_region_id=num,
                 mask=parent_path / Path("mask_cont_reg_" + str(num) + ".npz"),
+                mask_shape=brain_regions.Masks[num].shape,
                 x_min=brain_regions.coordinates_regions[num].xmin,
                 x_max=brain_regions.coordinates_regions[num].xmax,
                 y_min=brain_regions.coordinates_regions[num].ymin,

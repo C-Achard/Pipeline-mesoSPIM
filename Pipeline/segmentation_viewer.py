@@ -28,7 +28,10 @@ def display_cropped_continuous_cfos_napari(
     query_reg = query_reg.fetch(as_dict=True)
     Masks = {
         table["cont_region_id"]: [
-            load_npz(table["mask"]).toarray().astype(bool),
+            load_npz(table["mask"])
+            .toarray()
+            .astype("bool")
+            .reshape(table["mask_shape"]),
             table["x_min"],
             table["x_max"],
             table["y_min"],

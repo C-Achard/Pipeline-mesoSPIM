@@ -121,7 +121,9 @@ class BrainRegistrationResults(dj.Computed):
         cont_region_id : int
         ---
         mask: varchar(200)
-        mask_shape: longblob
+        mask_shape_x : int
+        mask_shape_y : int
+        mask_shape_z : int
         x_min : int
         x_max : int
         y_min : int
@@ -149,7 +151,9 @@ class BrainRegistrationResults(dj.Computed):
                 key,
                 cont_region_id=num,
                 mask=parent_path / Path("mask_cont_reg_" + str(num) + ".npz"),
-                mask_shape=brain_regions.Masks[num].shape,
+                mask_shape_x=brain_regions.Masks[num].shape[0],
+                mask_shape_y=brain_regions.Masks[num].shape[1],
+                mask_shape_z=brain_regions.Masks[num].shape[2],
                 x_min=brain_regions.coordinates_regions[num].xmin,
                 x_max=brain_regions.coordinates_regions[num].xmax,
                 y_min=brain_regions.coordinates_regions[num].ymin,

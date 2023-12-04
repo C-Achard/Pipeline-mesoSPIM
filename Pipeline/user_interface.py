@@ -4,8 +4,11 @@ import sys
 import logging
 from pathlib import Path
 import login
+import imio
 from bg_atlasapi import BrainGlobeAtlas
 from skimage.transform import resize
+import bg_space as bg
+import matplotlib.pyplot as plt
 
 sys.path.append("scripts")
 sys.path.append("schema")
@@ -24,6 +27,7 @@ except Exception as e:
     st.stop()
 
 from schema import mice, spim, user
+
 from scripts import brainreg_config, determine_ids, brainreg_utils
 
 logging.basicConfig(level=logging.DEBUG)
@@ -71,36 +75,52 @@ def check_orientation(
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.image(u_proja[0], caption="Ref. proj. 0", use_column_width=True)
+        fig, ax = plt.subplots()
+        ax.imshow(u_proja[0], cmap="gray")
+        ax.set_title(
+            "Ref. proj. 0",
+        )
+        ax.axis("off")
+        st.pyplot(fig)
+        fig, ax = plt.subplots()
+        ax.imshow(resize(u_proj[0], u_proja[0].shape), cmap="gray")
+        ax.set_title(
+            "Input proj. 0",
+        )
+        ax.axis("off")
+        st.pyplot(fig)
 
     with col2:
-        st.image(u_proja[1], caption="Ref. proj. 1", use_column_width=True)
+        fig, ax = plt.subplots()
+        ax.imshow(u_proja[1], cmap="gray")
+        ax.set_title(
+            "Ref. proj. 1",
+        )
+        ax.axis("off")
+        st.pyplot(fig)
+        fig, ax = plt.subplots()
+        ax.imshow(resize(u_proj[1], u_proja[1].shape), cmap="gray")
+        ax.set_title(
+            "Input proj. 1",
+        )
+        ax.axis("off")
+        st.pyplot(fig)
 
     with col3:
-        st.image(u_proja[2], caption="Ref. proj. 2", use_column_width=True)
-
-    col4, col5, col6 = st.columns(3)
-
-    with col4:
-        st.image(
-            resize(u_proj[0], u_proja[0].shape),
-            caption="Input proj. 0",
-            use_column_width=True,
+        fig, ax = plt.subplots()
+        ax.imshow(u_proja[2], cmap="gray")
+        ax.set_title(
+            "Ref. proj. 2",
         )
-
-    with col5:
-        st.image(
-            resize(u_proj[1], u_proja[1].shape),
-            caption="Input proj. 1",
-            use_column_width=True,
+        ax.axis("off")
+        st.pyplot(fig)
+        fig, ax = plt.subplots()
+        ax.imshow(resize(u_proj[2], u_proja[2].shape), cmap="gray")
+        ax.set_title(
+            "Input proj. 2",
         )
-
-    with col6:
-        st.image(
-            resize(u_proj[2], u_proja[2].shape),
-            caption="Input proj. 2",
-            use_column_width=True,
-        )
+        ax.axis("off")
+        st.pyplot(fig)
 
 
 def compare_lists(list1, list2):
@@ -133,12 +153,6 @@ def main():
 
     st.header("Parameters of mouse brain scans")
 
-    mouse_name = st.text_input("Mouse name", value="chickadee")
-    mouse_id = st.number_input("Mouse ID", value=0, step=1, format="%d")
-    date_of_mouse = st.text_input("Date (yyyy-mm-dd)", value="2023-11-11")
-    mouse_sex = st.selectbox("Sex", ["M", "F", "U"])
-    mouse_strain = st.text_input("Strain", value="WT")
-
     autofluo_paths = []
     cfos_paths = []
 
@@ -154,6 +168,7 @@ def main():
     mouse_sexs = []
     mouse_strains = []
 
+    add_new_parameters_brain_scan = st.checkbox("Add new attempt", value=False)
     dir = st.selectbox(
         "Input path",
         [
@@ -170,8 +185,7 @@ def main():
         cfos_scan_path = st.text_input(
             "cFOS scan path", value=Path("").resolve() / Path("cfos.tiff")
         )
-        elements = [string.strip() for string in autofluo_paths.split("_")]
-        tr_mouse_names.append(elements[0])
+        tr_mouse_names.append("")
         tr_mouse_ids.append(0)
         tr_date_of_mouses.append("2023-11-11")
         tr_mouse_sexs.append("M")
@@ -181,56 +195,95 @@ def main():
 
     else:
         dir_path = st.text_input("Directory path", value=Path("").resolve())
-        files_list = [
-            file.name for file in Path(dir_path).glob("*") if file.is_file()
-        ]
-        for filename in files_list:
-            elements = [string.strip() for string in filename.split("_")]
-            tr_mouse_names.append(elements[0])
-            tr_mouse_ids.append(0)
-            tr_date_of_mouses.append("2023-11-11")
-            tr_mouse_sexs.append("M")
-            tr_mouse_strains.append("WT")
-            autofluo_paths.append(
-                [string for string in elemnts if string == "Ch488"][0]
-            )
-            cfos_paths.append(
-                [string for string in elemnts if string == "Ch561"][0]
-            )
+        if Path(dir_path).is_dir():
+            files_list = [
+                file.name
+                for file in Path(dir_path).glob("*")
+                if file.is_file()
+            ]
+            if files_list:
+                for filename in files_list:
+                    elements = [
+                        string.strip() for string in filename.split("_")
+                    ]
+                    if [
+                        string
+                        for string in elements
+                        if (string.lower() == "ch488")
+                        or (string.lower() == "ch488.tiff")
+                    ]:
+                        autofluo_paths.append(
+                            str(Path(dir_path) / Path(filename))
+                        )
+                        tr_mouse_names.append(elements[0])
+                        tr_mouse_ids.append(0)
+                        tr_date_of_mouses.append("2023-11-11")
+                        tr_mouse_sexs.append("M")
+                        tr_mouse_strains.append("WT")
+                    elif [
+                        string
+                        for string in elements
+                        if (string.lower() == "ch561")
+                        or (string.lower() == "ch561.tiff")
+                    ]:
+                        cfos_paths.append(str(Path(dir_path) / Path(filename)))
+            else:
+                st.error("The directory given contains no file")
+                st.stop()
+        else:
+            st.error("No valid directory given as an input")
+            st.stop()
 
-    if tr_mouses_names:
+    if tr_mouse_names:
         Col1, Col2, Col3, Col4, Col5 = st.columns(5)
         with Col1:
             for i, mouse_name in enumerate(tr_mouse_names):
-                p = st.text_input(
-                    "mouse name n°" + str(i), value=mouse_name, key=i
-                )
+                title = "mouse name n°" + str(i)
+                if len(tr_mouse_names) == 1:
+                    title = "mouse name"
+                p = st.text_input(title, value=mouse_name, key=i)
                 mouse_names.append(p)
         with Col2:
             for i, mouse_id in enumerate(tr_mouse_ids):
+                title = "mouse ID n°" + str(i)
+                if len(tr_mouse_names) == 1:
+                    title = "mouse ID"
                 p = st.text_input(
-                    "mouse id n°" + str(i), value=mouse_id, key=i
+                    title, value=mouse_id, key=i + len(tr_mouse_names)
                 )
                 mouse_ids.append(p)
         with Col3:
             for i, date in enumerate(tr_date_of_mouses):
+                title = "date of birth n°" + str(i)
+                if len(tr_mouse_names) == 1:
+                    title = "date of birth"
                 p = st.text_input(
-                    "date of birth n°" + str(i), value=date, key=i
+                    title, value=date, key=i + 2 * len(tr_mouse_names)
                 )
                 date_of_mouses.append(p)
         with Col4:
             for i, sex in enumerate(tr_mouse_sexs):
-                p = st.text_input("mouse sex n°" + str(i), value=sex, key=i)
+                title = "mouse sex n°" + str(i)
+                if len(tr_mouse_names) == 1:
+                    title = "mouse sex"
+                p = st.selectbox(
+                    title, ["M", "F", "U"], key=i + 3 * len(tr_mouse_names)
+                )
                 mouse_sexs.append(p)
         with Col5:
             for i, strain in enumerate(tr_mouse_strains):
-                st.text_input("mouse strain n°" + str(i), value=strain, key=i)
+                title = "mouse strain n°" + str(i)
+                if len(tr_mouse_names) == 1:
+                    title = "mouse strain"
+                st.text_input(
+                    title, value=strain, key=i + 4 * len(tr_mouse_names)
+                )
                 mouse_strains.append(p)
 
     show_cfos_image = st.checkbox("show cFOS image", value=False)
     if show_cfos_image:
         if len(cfos_paths) > 1:
-            m = st.selectbox("Select the mouse", cfos_paths)
+            m = st.selectbox("Select the mouse for the cFOS scan", cfos_paths)
             brain = imio.load_any(m)
             u_proja = []
             for i in range(3):
@@ -238,20 +291,30 @@ def main():
             # Display all projections with somewhat consistent scaling
             col_1, col_2, col_3 = st.columns(3)
             with col_1:
-                st.image(
-                    u_proja[0], caption="Ref. proj. 0", use_column_width=True
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[0], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 0",
                 )
-
+                ax.axis("off")
+                st.pyplot(fig)
             with col_2:
-                st.image(
-                    u_proja[1], caption="Ref. proj. 1", use_column_width=True
+                fig, ax = plt.subplots()
+                ax.imshow(u_proja[1], cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 1",
                 )
-
+                ax.axis("off")
+                st.pyplot(fig)
             with col_3:
-                st.image(
-                    u_proja[2], caption="Ref. proj. 2", use_column_width=True
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[2], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 2",
                 )
-        else:
+                ax.axis("off")
+                st.pyplot(fig)
+        elif len(cfos_paths) == 1:
             brain = imio.load_any(cfos_paths[0])
             u_proja = []
             for i in range(3):
@@ -259,19 +322,105 @@ def main():
             # Display all projections with somewhat consistent scaling
             col_1, col_2, col_3 = st.columns(3)
             with col_1:
-                st.image(
-                    u_proja[0], caption="Ref. proj. 0", use_column_width=True
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[0], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 0",
                 )
+                ax.axis("off")
+                st.pyplot(fig)
 
             with col_2:
-                st.image(
-                    u_proja[1], caption="Ref. proj. 1", use_column_width=True
+                fig, ax = plt.subplots()
+                ax.imshow(u_proja[1], cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 1",
                 )
+                ax.axis("off")
+                st.pyplot(fig)
 
             with col_3:
-                st.image(
-                    u_proja[2], caption="Ref. proj. 2", use_column_width=True
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[2], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 2",
                 )
+                ax.axis("off")
+                st.pyplot(fig)
+        else:
+            st.error("No valid cFOS file")
+            st.stop()
+
+    show_autofluo_image = st.checkbox("show autofluo image", value=False)
+    if show_autofluo_image:
+        if len(autofluo_paths) > 1:
+            m = st.selectbox(
+                "Select the mouse for the autfluo scan", autofluo_paths
+            )
+            brain = imio.load_any(m)
+            u_proja = []
+            for i in range(3):
+                u_proja.append(np.mean(brain, axis=i))
+            # Display all projections with somewhat consistent scaling
+            Col_1, Col_2, Col_3 = st.columns(3)
+            with Col_1:
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[0], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 0",
+                )
+                ax.axis("off")
+                st.pyplot(fig)
+            with Col_2:
+                fig, ax = plt.subplots()
+                ax.imshow(u_proja[1], cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 1",
+                )
+                ax.axis("off")
+                st.pyplot(fig)
+            with Col_3:
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[2], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 2",
+                )
+                ax.axis("off")
+                st.pyplot(fig)
+        elif len(autofluo_paths) == 1:
+            brain = imio.load_any(autofluo_paths[0])
+            u_proja = []
+            for i in range(3):
+                u_proja.append(np.mean(brain, axis=i))
+            # Display all projections with somewhat consistent scaling
+            Col_1, Col_2, Col_3 = st.columns(3)
+            with Col_1:
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[0], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 0",
+                )
+                ax.axis("off")
+                st.pyplot(fig)
+            with Col_2:
+                fig, ax = plt.subplots()
+                ax.imshow(u_proja[1], cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 1",
+                )
+                ax.axis("off")
+                st.pyplot(fig)
+            with Col_3:
+                fig, ax = plt.subplots()
+                ax.imshow(resize(u_proja[2], u_proja[1].shape), cmap="gray")
+                ax.set_title(
+                    "Ref. proj. 2",
+                )
+                ax.axis("off")
+                st.pyplot(fig)
+        else:
+            st.error("No valid autofluo file")
+            st.stop()
 
     st.header("Parameters of the brain registration")
     brainreg_result_path = st.text_input(
@@ -285,17 +434,36 @@ def main():
         "atlas name",
         ["allen_mouse_50um", "allen_mouse_25um", "allen_mouse_10um"],
     )
-    cpus_number = st.number_input(
-        "number of free CPUs", value=4, min_value=0, step=1, format="%d"
-    )
-    brain_geom = st.selectbox(
-        "Brain geometry", ["full", "hemisphere_l", "hemisphere_r"]
-    )
-    voxel_size_x = st.number_input("Voxel size x", step=0.01, format="%f")
-    voxel_size_y = st.number_input("Voxel size y", step=0.01, format="%f")
-    voxel_size_z = st.number_input("Voxel size z", step=0.01, format="%f")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        cpus_number = st.number_input(
+            "number of free CPUs", value=4, min_value=0, step=1, format="%d"
+        )
+    with col2:
+        brain_geom = st.selectbox(
+            "Brain geometry", ["full", "hemisphere_l", "hemisphere_r"]
+        )
+    with col3:
+        preprocessing_params = st.text_input("Preprocessing", value="default")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        voxel_size_x = st.number_input("Voxel size x", step=0.01, format="%f")
+    with col2:
+        voxel_size_y = st.number_input("Voxel size y", step=0.01, format="%f")
+    with col3:
+        voxel_size_z = st.number_input("Voxel size z", step=0.01, format="%f")
+
     orientation_str = st.text_input("Orientation", value="sar")
-    check_orient = st.checkbox("Check orientation", value=False)
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        check_orient = st.checkbox("Check orientation", value=False)
+    with col2:
+        save_orientation = st.checkbox("Save orientation", value=False)
+    with col3:
+        sort_input_bool = st.checkbox("Sort input file", value=False)
+    with col4:
+        debug = st.checkbox("Debug", value=False)
+
     if check_orient:
         if len(autofluo_paths) > 1:
             c = st.selectbox("Select the mouse", autofluo_paths)
@@ -306,62 +474,62 @@ def main():
             check_orientation(
                 orientation_str, brain_geom, atlas_name, autofluo_paths[0]
             )
-    preprocessing_params = st.text_input("Preprocessing", value="default")
-    sort_input_bool = st.checkbox("Sort input file", value=False)
-    save_orientation = st.checkbox("Save orientation", value=False)
 
-    st.header("Advanced parameters of the brain registration")
-
-    debug = st.checkbox("Debug", value=False)
-    affine_downsampling_steps = st.number_input(
-        "Affine downsampling steps", value=6, min_value=0, step=1, format="%d"
-    )
-    affine_sampling_steps = st.number_input(
-        "Number of ownsampling steps to use for affine registration",
-        value=5,
-        min_value=0,
-        step=1,
-        format="%d",
-    )
-    num_freeform_downsample = st.number_input(
-        "Number of freeform downsampling steps",
-        value=6,
-        min_value=0,
-        step=1,
-        format="%d",
-    )
-    number_freeform_downsample_to_use = st.number_input(
-        "Number of downsampling steps to use for freeform registration",
-        value=4,
-        min_value=0,
-        step=1,
-        format="%d",
-    )
-    bending_energy_weight = st.number_input(
-        "Bending energy weight", value=0.95, step=0.01, format="%f"
-    )
-    grid_spacing = st.number_input(
-        "Grid spacing", value=-10.00, step=0.01, format="%f"
-    )
-    smoothing_sigma_ref = st.number_input(
-        "Smoothing sigma reference", value=1.0, step=0.1, format="%f"
-    )
-    smoothing_sigma_floating = st.number_input(
-        "Smoothing sigma floating", value=1.0, step=0.1, format="%f"
-    )
-    num_hist_bins = st.number_input(
-        "Number histogram bins floating", value=128, step=1, format="%d"
-    )
-    num_hist_bins_ref = st.number_input(
-        "Number histogram bins reference", value=128, step=1, format="%d"
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+        affine_downsampling_steps = st.number_input(
+            "Affine downsampling steps",
+            value=6,
+            min_value=0,
+            step=1,
+            format="%d",
+        )
+        num_freeform_downsample = st.number_input(
+            "Number of freeform downsampling steps",
+            value=6,
+            min_value=0,
+            step=1,
+            format="%d",
+        )
+        bending_energy_weight = st.number_input(
+            "Bending energy weight", value=0.95, step=0.01, format="%f"
+        )
+        smoothing_sigma_ref = st.number_input(
+            "Smoothing sigma reference", value=1.0, step=0.1, format="%f"
+        )
+        num_hist_bins_ref = st.number_input(
+            "Number histogram bins reference", value=128, step=1, format="%d"
+        )
+    with col2:
+        affine_sampling_steps = st.number_input(
+            "Number of affine downsampling steps to use",
+            value=5,
+            min_value=0,
+            step=1,
+            format="%d",
+        )
+        number_freeform_downsample_to_use = st.number_input(
+            "Number of freeform downsampling steps to use",
+            value=4,
+            min_value=0,
+            step=1,
+            format="%d",
+        )
+        grid_spacing = st.number_input(
+            "Grid spacing", value=-10.00, step=0.01, format="%f"
+        )
+        smoothing_sigma_floating = st.number_input(
+            "Smoothing sigma floating", value=1.0, step=0.1, format="%f"
+        )
+        num_hist_bins = st.number_input(
+            "Number histogram bins floating", value=128, step=1, format="%d"
+        )
 
     st.header("Parameters of the user")
     username = st.text_input("Name", value="cyril")
     useremail = st.text_input("Email", value="cyril.achard@epfl.ch")
 
     st.header("Determining the ROIs")
-    add_new_parameters_brain_scan = st.checkbox("Add new attempt", value=False)
     rois_choice = st.selectbox(
         "ROIs",
         [
@@ -418,7 +586,7 @@ def main():
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")
         params = {
-            "output_directory": Path(brainreg_result_path).resolve(),
+            "output_directory": str(Path(brainreg_result_path).resolve()),
             "additional_images": additional_files_paths,
             "atlas": atlas_name,
             "n_free_cpus": cpus_number,
@@ -441,15 +609,23 @@ def main():
             "histogram_n_bins_reference": num_hist_bins_ref,
         }
         attempt = 0
+        st.sidebar.write("Writing brainreg parameters into JSON file")
+        brainreg_config.write_json_file_brainreg(dictionary=params)
 
-        for (
+        for index, (
             mouse_name,
             mouse_id,
             date_of_mouse,
             mouse_sex,
             mouse_strain,
-        ) in zip(
-            mouse_names, mouse_ids, date_of_mouses, mouse_sexs, mouse_strains
+        ) in enumerate(
+            zip(
+                mouse_names,
+                mouse_ids,
+                date_of_mouses,
+                mouse_sexs,
+                mouse_strains,
+            )
         ):
             scan_attempt = fetch_attempt_scan(mouse_name, username)
             if not scan_attempt:
@@ -466,10 +642,7 @@ def main():
                     attempt_roi = key
                     break
 
-            st.sidebar.write("Writing brainreg parameters into JSON file")
-            brainreg_config.write_json_file_brainreg(dictionary=params)
-
-            st.sidebar.write("Populating Mouse table")
+            st.sidebar.write("Populating Mouse table of " + mouse_name)
             mice.Mouse().insert1(
                 (
                     mouse_name.lower(),
@@ -481,10 +654,10 @@ def main():
                 skip_duplicates=True,
             )
 
-            st.sidebar.write("Populating User table")
+            st.sidebar.write("Populating User table  of " + mouse_name)
             user.User().insert1((username, useremail), skip_duplicates=True)
 
-            st.sidebar.write("Populating Scan table")
+            st.sidebar.write("Populating Scan table of " + scan_name)
             scan = spim.Scan()
 
             cfos_path = Path(cfos_scan_path)
@@ -520,19 +693,19 @@ def main():
 
             logger.info(scan)
 
-            st.sidebar.write("Starting brain registration")
+            st.sidebar.write("Starting brain registration of " + mouse_name)
             brainreg = spim.BrainRegistration()
             brainreg.populate()
 
             logger.info(brainreg)
 
-            st.sidebar.write("Extracting coordinates of ROIs")
+            st.sidebar.write("Extracting coordinates of ROIs of " + mouse_name)
             brg_results = spim.BrainRegistrationResults()
             brg_results.populate()
 
             logger.info(brg_results)
 
-            st.sidebar.write("Starting segmentation")
+            st.sidebar.write("Starting segmentation of " + mouse_name)
             inference = spim.Inference()
             inference.populate()
 
@@ -541,11 +714,12 @@ def main():
             analysis = spim.Analysis()
             analysis.populate()
 
-            st.sidebar.write("Writing report")
+            st.sidebar.write("Writing report for " + mouse_name)
             report = spim.Report()
             report.populate()
 
-            st.sidebar.write("Pipeline completed !")
+            st.sidebar.write("Pipeline completed for " + mouse_name)
+        st.sidebar.write("Pipeline fully completed !")
 
 
 if __name__ == "__main__":

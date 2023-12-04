@@ -61,7 +61,12 @@ def display_cropped_continuous_cfos_napari(
             Masks[key][3] : Masks[key][4] + 1,
             Masks[key][5] : Masks[key][6] + 1,
         ]
-        viewer.add_labels(Instance_labels[key][Mask_cont])
+        crop = np.where(
+            Mask_cont,
+            Instance_labels[key],
+            np.zeros_like(Instance_labels[key]),
+        )
+        viewer.add_labels(crop)
 
 
 if __name__ == "__main__":

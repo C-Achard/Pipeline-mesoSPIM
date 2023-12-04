@@ -137,6 +137,6 @@ if __name__ == "__main__":
     viewer = napari.Viewer()
     viewer.add_image(image)
     viewer.add_image(results[0].result)
-    viewer.add_image(post_process["Not resized"]["labels"])
-    viewer.add_image(post_process["Resized"]["labels"])
+    viewer.add_labels(post_process["Not resized"]["labels"])
+    viewer.add_labels(post_process["Resized"]["labels"])
     napari.run()

@@ -110,7 +110,9 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
             outline_sigma=config.outline_sigma,
         )
         # clear small objects
-        labels = clear_small_objects(labels, config.clear_small_size)
+        labels = clear_small_objects(labels, config.clear_small_size).astype(
+            np.uint16
+        )
         # get volume stats WITH ANISOTROPY
         stats_not_resized = volume_stats(labels)
         # resize labels to match original image

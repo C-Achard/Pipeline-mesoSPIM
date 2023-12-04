@@ -116,7 +116,9 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         # get volume stats WITH ANISOTROPY
         stats_not_resized = volume_stats(labels)
         # resize labels to match original image
-        labels_resized = resize(labels, config.anisotropy_correction)
+        labels_resized = resize(labels, config.anisotropy_correction).astype(
+            np.uint16
+        )
         # get volume stats WITHOUT ANISOTROPY
         stats_resized = volume_stats(labels)
 

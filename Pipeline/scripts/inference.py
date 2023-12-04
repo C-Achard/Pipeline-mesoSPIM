@@ -1,10 +1,18 @@
 from functools import partial
 from pathlib import Path
-
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
+from typing import List
 import numpy as np
 import torch
 from cellseg_utils import InstanceSegmentationWrapper, LogFixture
-from napari_cellseg3d.code_models.instance_segmentation import voronoi_otsu
+from napari_cellseg3d.code_models.instance_segmentation import (
+    voronoi_otsu,
+    threshold,
+    clear_large_objects,
+    clear_small_objects,
+    volume_stats,
+)
 from napari_cellseg3d.code_models.worker_inference import InferenceWorker
 from napari_cellseg3d.config import (
     InferenceWorkerConfig,
@@ -12,8 +20,9 @@ from napari_cellseg3d.config import (
     ModelInfo,
     SlidingWindowConfig,
 )
+from napari_cellseg3d.utils import resize
 
-WINDOW_SIZE = 64
+WINDOW_SIZE = 128
 
 MODEL_INFO = ModelInfo(
     name="SegResNet",
@@ -24,13 +33,24 @@ CONFIG = InferenceWorkerConfig(
     device="cuda" if torch.cuda.is_available() else "cpu",
     model_info=MODEL_INFO,
     results_path=str(Path("./results").absolute()),
-    compute_stats=True,
+    compute_stats=False,
     sliding_window_config=SlidingWindowConfig(WINDOW_SIZE, 0.25),
 )
 
-###### INSTANCE SEGMENTATION ######
-SPOT_SIGMA = 0.7
-OUTLINE_SIGMA = 0.7
+
+@dataclass_json
+@dataclass
+class PostProcessConfig:
+    """Config for post-processing."""
+
+    threshold: float = 0.65
+    spot_sigma: float = 0.7
+    outline_sigma: float = 0.7
+    anisotropy_correction: List[
+        float
+    ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
+    clear_small_size: int = 5
+    clear_large_objects: int = 500
 
 
 def inference_on_images(
@@ -49,18 +69,7 @@ def inference_on_images(
         False  # will need to be enabled and set to 0.5 for the test images
     )
     config.post_process_config.instance = InstanceSegConfig(
-        enabled=True,
-        method=InstanceSegmentationWrapper(
-            method=partial(
-                voronoi_otsu,
-                spot_sigma=SPOT_SIGMA,
-                outline_sigma=OUTLINE_SIGMA,
-            ),
-            parameters={
-                "spot_sigma": SPOT_SIGMA,
-                "outline_sigma": OUTLINE_SIGMA,
-            },
-        ),
+        enabled=False,
     )
 
     config.layer = image
@@ -83,8 +92,53 @@ def inference_on_images(
     return results
 
 
+def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
+    """Run post-processing on inference results."""
+    if config.anisotropy_correction is None:
+        config.anisotropy_correction = [1, 1, 1]
+
+    for result in results:
+        image = result.result
+        # apply threshold to semantic segmentation
+        image = threshold(image, config.threshold)
+        # remove artifacts by clearing large objects
+        image = clear_large_objects(image, config.clear_large_objects)
+        # run instance segmentation
+        labels = voronoi_otsu(
+            image,
+            spot_sigma=config.spot_sigma,
+            outline_sigma=config.outline_sigma,
+        )
+        # clear small objects
+        labels = clear_small_objects(labels, config.clear_small_size).astype(
+            np.uint16
+        )
+        # get volume stats WITH ANISOTROPY
+        stats_not_resized = volume_stats(labels)
+        # resize labels to match original image
+        labels_resized = resize(labels, config.anisotropy_correction).astype(
+            np.uint16
+        )
+        # get volume stats WITHOUT ANISOTROPY
+        stats_resized = volume_stats(labels)
+
+        return {
+            "Not resized": {"labels": labels, "stats": stats_not_resized},
+            "Resized": {"labels": labels_resized, "stats": stats_resized},
+        }
+
+
 if __name__ == "__main__":
     image = np.random.rand(64, 64, 64)
     results = inference_on_images(image)
     # see InferenceResult for more info on results so you can populate tables from them
     # note that the csv with stats is not saved by default, you need to retrieve it from the results
+    post_process = post_processing(results)
+    import napari
+
+    viewer = napari.Viewer()
+    viewer.add_image(image)
+    viewer.add_image(results[0].result)
+    viewer.add_labels(post_process["Not resized"]["labels"])
+    viewer.add_labels(post_process["Resized"]["labels"])
+    napari.run()

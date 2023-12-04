@@ -126,19 +126,3 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
             "Not resized": {"labels": labels, "stats": stats_not_resized},
             "Resized": {"labels": labels_resized, "stats": stats_resized},
         }
-
-
-if __name__ == "__main__":
-    image = np.random.rand(64, 64, 64)
-    results = inference_on_images(image)
-    # see InferenceResult for more info on results so you can populate tables from them
-    # note that the csv with stats is not saved by default, you need to retrieve it from the results
-    post_process = post_processing(results)
-    import napari
-
-    viewer = napari.Viewer()
-    viewer.add_image(image)
-    viewer.add_image(results[0].result)
-    viewer.add_labels(post_process["Not resized"]["labels"])
-    viewer.add_labels(post_process["Resized"]["labels"])
-    napari.run()

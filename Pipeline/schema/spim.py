@@ -222,11 +222,15 @@ class Inference(dj.Computed):
             reg_y_min : reg_y_max + 1,
             reg_z_min : reg_z_max + 1,
         ]
-        infer = inference.inference_on_images(reg_cfos)[0]
+        results = inference.inference_on_images(reg_cfos)
+        post_process = post_processing(results)
+        infer = results[0]
 
         reg_res = infer.result
         reg_stats = infer.stats
         reg_instance_labels = infer.instance_labels
+
+        ##ADD WHICH RESIZE OR NOT RESIZE !!!!!
 
         df = pd.DataFrame()
         for stats in reg_stats:

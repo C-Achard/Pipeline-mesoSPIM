@@ -226,7 +226,7 @@ class Inference(dj.Computed):
         post_process = post_processing(results)
         infer = results[0]
 
-        reg_res = infer.result
+        reg_res = infer.semantic_segmentation
         reg_stats = infer.stats
         reg_instance_labels = infer.instance_labels
 

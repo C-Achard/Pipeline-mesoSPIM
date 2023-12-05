@@ -98,7 +98,7 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         config.anisotropy_correction = [1, 1, 1]
 
     for result in results:
-        image = result.result
+        image = result.semantic_segmentation
         # apply threshold to semantic segmentation
         image = threshold(image, config.threshold)
         # remove artifacts by clearing large objects

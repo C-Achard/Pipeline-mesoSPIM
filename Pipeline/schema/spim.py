@@ -232,13 +232,8 @@ class Inference(dj.Computed):
         reg_stats_resized = post_process["Resized"]["stats"]
         reg_instance_labels = post_process["Not resized"]["labels"]
 
-        df = pd.DataFrame()
-        for stats in reg_stats:
-            df = pd.DataFrame(stats.get_dict())
-
-        df_resized = pd.DataFrame()
-        for stats in reg_stats_resized:
-            df_resized = pd.DataFrame(stats.get_dict())
+        df = pd.DataFrame(reg_stats.get_dict())
+        df_resized = pd.DataFrame(reg_stats_resized.get_dict())
 
         parent_path = (BrainRegistration() & key).fetch1("registration_path")
         result_path = parent_path / Path("inference_results")

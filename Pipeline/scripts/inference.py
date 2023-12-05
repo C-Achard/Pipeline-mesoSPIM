@@ -98,7 +98,7 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         config.anisotropy_correction = [1, 1, 1]
 
     for result in results:
-        image = result.result
+        image = result.semantic_segmentation
         # apply threshold to semantic segmentation
         image = threshold(image, config.threshold)
         # remove artifacts by clearing large objects
@@ -126,3 +126,18 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
             "Not resized": {"labels": labels, "stats": stats_not_resized},
             "Resized": {"labels": labels_resized, "stats": stats_resized},
         }
+
+
+# if __name__ == "__main__":
+#     image = np.random.rand(64, 64, 64)
+#     results = inference_on_images(image)
+#     # see InferenceResult for more info on results so you can populate tables from them
+#     # note that the csv with stats is not saved by default, you need to retrieve it from the results
+#     post_process = post_processing(results)
+#     import napari
+#     viewer = napari.Viewer()
+#     viewer.add_image(image)
+#     viewer.add_image(results[0].semantic_segmentation)
+#     viewer.add_labels(post_process["Not resized"]["labels"])
+#     viewer.add_labels(post_process["Resized"]["labels"])
+#     napari.run()

@@ -54,18 +54,15 @@ def display_cropped_continuous_cfos_napari(
         for table in query_instance
     }
 
-    viewer = naparari.Viewer()
+    viewer = napari.Viewer()
     for key in Masks:
-        Mask_cont = Masks[0][
+        sample = np.zeros_like(Masks[key][0])
+        sample[
             Masks[key][1] : Masks[key][2] + 1,
             Masks[key][3] : Masks[key][4] + 1,
             Masks[key][5] : Masks[key][6] + 1,
-        ]
-        crop = np.where(
-            Mask_cont,
-            Instance_labels[key],
-            np.zeros_like(Instance_labels[key]),
-        )
+        ] = Instance_labels[key]
+        crop = np.where(Masks[key][0], sample, np.zeros_like(sample))
         viewer.add_labels(crop)
 
 

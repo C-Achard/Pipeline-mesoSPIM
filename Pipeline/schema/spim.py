@@ -180,7 +180,7 @@ class BrainRegistrationResults(dj.Computed):
 
 @schema
 class Inference(dj.Computed):
-    """Semantic image segmentation"""
+    """Semantic and Instance image segmentation"""
 
     definition = """  # semantic image segmentation
     -> BrainRegistrationResults.ContinuousRegion
@@ -188,6 +188,7 @@ class Inference(dj.Computed):
     semantic_labels: varchar(200)
     instance_labels: varchar(200)
     stats: varchar(200)
+    stats_resized: varchar(200)
     """
 
     def make(self, key):  # from ROI in brainreg
@@ -224,18 +225,20 @@ class Inference(dj.Computed):
         ]
         results = inference.inference_on_images(reg_cfos)
         post_process = post_processing(results)
+
         infer = results[0]
-
-        reg_res = infer.semantic_segmentation
-        reg_stats = infer.stats
-        reg_instance_labels = infer.instance_labels
-
-        ##ADD WHICH RESIZE OR NOT RESIZE !!!!!
+        reg_semantic_labels = infer.semantic_segmentation
+        reg_stats = post_process["Not resized"]["stats"]
+        reg_stats_resized = post_process["Resized"]["stats"]
+        reg_instance_labels = post_process["Not resized"]["labels"]
 
         df = pd.DataFrame()
         for stats in reg_stats:
             df = pd.DataFrame(stats.get_dict())
-            print(df)
+
+        df_resized = pd.DataFrame()
+        for stats in reg_stats_resized:
+            df_resized = pd.DataFrame(stats.get_dict())
 
         parent_path = (BrainRegistration() & key).fetch1("registration_path")
         result_path = parent_path / Path("inference_results")
@@ -243,13 +246,13 @@ class Inference(dj.Computed):
             result_path.mkdir()
         result_path_reg = result_path / Path(
             mouse_name
-            + "_inference_cont_reg_"
+            + "_semantic_cont_reg_"
             + str(cont_region_id)
             + "_"
             + str(att)
             + ".tiff"
         )
-        imio.to_tiff(reg_res, result_path_reg)
+        imio.to_tiff(reg_semantic_labels, result_path_reg)
 
         result_path_reg_instance = result_path / Path(
             mouse_name
@@ -271,9 +274,20 @@ class Inference(dj.Computed):
         )
         df.to_csv(result_path_reg_stats)
 
+        result_path_reg_stats_resized = result_path / Path(
+            mouse_name
+            + "_stats_resized_seg_cont_reg_"
+            + str(cont_region_id)
+            + "_"
+            + str(att)
+            + ".csv"
+        )
+        df_resized.to_csv(result_path_reg_stats_resized)
+
         key["semantic_labels"] = result_path_reg
         key["instance_labels"] = result_path_reg_instance
         key["stats"] = result_path_reg_stats
+        key["stats_resized"] = result_path_reg_stats_resized
         self.insert1(key)
 
 

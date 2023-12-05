@@ -224,7 +224,7 @@ class Inference(dj.Computed):
             reg_z_min : reg_z_max + 1,
         ]
         results = inference.inference_on_images(reg_cfos)
-        post_process = post_processing(results)
+        post_process = inference.post_processing(results)
 
         infer = results[0]
         reg_semantic_labels = infer.semantic_segmentation

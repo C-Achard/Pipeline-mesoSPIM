@@ -239,6 +239,7 @@ class Inference(dj.Computed):
         result_path = parent_path / Path("inference_results")
         if not Path(result_path).is_dir():
             result_path.mkdir()
+
         result_path_reg = result_path / Path(
             mouse_name
             + "_semantic_cont_reg_"

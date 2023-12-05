@@ -23,10 +23,12 @@ def test_populate():
     brainreg_config.write_json_file_brainreg()
 
     """Populate all tables as test."""
-    mice.Mouse().insert1(
+    test_mouse = mice.Mouse()
+    test_mouse.insert1(
         ("mouse_chickadee", 0, "2022-01-01", "U", "WT"), skip_duplicates=True
     )
-    user.User().insert1(
+    test_user = user.User()
+    test_user.insert1(
         ("cyril_tit", "cyril.achard@epfl.ch"), skip_duplicates=True
     )
 

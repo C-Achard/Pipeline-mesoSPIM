@@ -31,7 +31,13 @@ def display_cropped_continuous_cfos_napari(
             load_npz(table["mask"])
             .toarray()
             .astype("bool")
-            .reshape(table["mask_shape"]),
+            .reshape(
+                (
+                    table["mask_shape_x"],
+                    table["mask_shape_x"],
+                    table["mask_shape_x"],
+                )
+            ),
             table["x_min"],
             table["x_max"],
             table["y_min"],

@@ -646,7 +646,8 @@ def main():
                     break
 
             st.sidebar.write("Populating Mouse table of " + mouse_name)
-            mice.Mouse().insert1(
+            mouse = mice.Mouse()
+            mouse.insert1(
                 (
                     mouse_name.lower(),
                     mouse_id,
@@ -658,7 +659,8 @@ def main():
             )
 
             st.sidebar.write("Populating User table  of " + mouse_name)
-            user.User().insert1((username, useremail), skip_duplicates=True)
+            user = user.User()
+            user.insert1((username, useremail), skip_duplicates=True)
 
             st.sidebar.write("Populating Scan table of " + scan_name)
             scan = spim.Scan()

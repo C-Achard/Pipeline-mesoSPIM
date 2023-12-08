@@ -620,8 +620,6 @@ def main():
     outline_sigma = st.number_input(
         "Outline sigma", value=0.7, step=0.1, format="%f"
     )
-
-    anisotropy_corr = None
     clear_small_objects_size = st.number_input(
         "Clear small objects size", value=5, step=1, format="%d"
     )
@@ -760,7 +758,6 @@ def main():
                     threshold,
                     spot_sigma,
                     outline_sigma,
-                    anisotropy_corr,
                     clear_small_objects_size,
                     clear_large_objects_size,
                 ),

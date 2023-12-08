@@ -70,7 +70,6 @@ class PostProcessing(dj.Manual):
     threshold = 0.65: double
     spot_sigma = 0.7: double
     outline_sigma = 0.7: double
-    anisotropy_correction = None: longblob
     clear_small_size = 5: int
     clear_large_objects = 500: int
     """
@@ -80,7 +79,7 @@ class PostProcessing(dj.Manual):
             (PostProcessing() & self).fetch1("threshold"),
             (PostProcessing() & self).fetch1("spot_sigma"),
             (PostProcessing() & self).fetch1("outline_sigma"),
-            (PostProcessing() & self).fetch1("anisotropy_correction"),
+            None,
             (PostProcessing() & self).fetch1("clear_small_size"),
             (PostProcessing() & self).fetch1("clear_large_objects"),
         )

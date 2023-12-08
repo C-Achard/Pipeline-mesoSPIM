@@ -31,7 +31,7 @@ except Exception as e:
 
 # from schema import mice, spim, user
 
-from scripts import brainreg_config, determine_ids, brainreg_utils
+from scripts import brainreg_config, determine_ids, brainreg_utils, inference
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -150,6 +150,24 @@ def return_all_list(name, username, scan_attempt):
         if table["mouse_name"] == name
     }
     return list_rois
+
+
+def return_all_postprocess(mouse_name, username, scan_attempt):
+    query = spim.PostProcessing() & f"scan_attempt='{scan_attempt}'"
+    query = query.fetch(as_dict=True)
+    list_postprocess = {
+        table["postprocess_key"]: PostProcessConfig(
+            table["threshold"],
+            table["spot_sigma"],
+            table["outline_sigma"],
+            table["anisotropy_correction"],
+            table["clear_small_size"],
+            table["clear_large_objects"],
+        )
+        for table in query
+        if table["mouse_name"] == name
+    }
+    return list_postprocess
 
 
 def main():
@@ -541,6 +559,7 @@ def main():
             "Give ROI ids",
             "Give ROI exact names",
             "Give ROI global names (ex, retrosplenial)",
+            "Select the whole brain",
         ],
     )
     rois_ids = []
@@ -587,6 +606,28 @@ def main():
             filtered_df = df[df["id"].isin(rois_ids)]
             st.write("The following areas have been selected")
             st.dataframe(filtered_df)
+    if rois_choice == "Select the whole brain":
+        rois_ids = [8]
+
+    st.header("Determining the postprocessing parameters")
+
+    threshold = st.number_input(
+        "Threshold", value=0.65, step=0.01, format="%f"
+    )
+    spot_sigma = st.number_input(
+        "Spot sigma", value=0.7, step=0.1, format="%f"
+    )
+    outline_sigma = st.number_input(
+        "Outline sigma", value=0.7, step=0.1, format="%f"
+    )
+
+    anisotropy_corr = None
+    clear_small_objects_size = st.number_input(
+        "Clear small objects size", value=5, step=1, format="%d"
+    )
+    clear_large_objects_size = st.number_input(
+        "Clear large objects size", value=500, step=1, format="%d"
+    )
 
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")
@@ -646,6 +687,18 @@ def main():
                 if compare_lists(list_ids[key], rois_ids):
                     attempt_roi = key
                     break
+            list_postprocess = return_all_postprocess(
+                mouse_name, username, scan_attempt
+            )
+            attempt_postprocess = 0
+            for key in list_postprocess:
+                if all(
+                    getattr(list_postprocess[key], field)
+                    == getattr(postpro, field)
+                    for field in postpro.__dataclass_fields__
+                ):
+                    attempt_postprocess = key
+                    break
 
             st.sidebar.write("Populating Mouse table of " + mouse_name)
             mouse = mice.Mouse()
@@ -694,6 +747,22 @@ def main():
                     scan_attempt,
                     attempt_roi,
                     rois_ids,
+                ),
+                skip_duplicates=True,
+            )
+
+            scan_postprocess = spim.PostProcessing()
+            scan_postprocess.instert1(
+                (
+                    mouse_name.lower(),
+                    scan_attempt,
+                    attempt_postprocess,
+                    threshold,
+                    spot_sigma,
+                    outline_sigma,
+                    anisotropy_corr,
+                    clear_small_objects_size,
+                    clear_large_objects_size,
                 ),
                 skip_duplicates=True,
             )

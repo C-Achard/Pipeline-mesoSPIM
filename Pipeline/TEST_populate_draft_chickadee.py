@@ -72,6 +72,16 @@ def test_populate():
         skip_duplicates=True,
     )
 
+    test_scan_postprocess = spim.PostProcessing()
+    test_scan_postprocess.instert1(
+        (
+            "mouse_chickadee",
+            0,
+            0,
+        ),
+        skip_duplicates=True,
+    )
+
     logger.info(test_scan)
 
     test_brainreg = spim.BrainRegistration()

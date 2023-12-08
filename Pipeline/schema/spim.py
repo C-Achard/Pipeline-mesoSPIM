@@ -60,6 +60,33 @@ class ROIs(dj.Manual):
 
 
 @schema
+class PostProcessing(dj.Manual):
+    """The different parameters for the post-processing"""
+
+    definition = """
+    -> Scan
+    postprocess_key: int
+    ---
+    threshold = 0.65: double
+    spot_sigma = 0.7: double
+    outline_sigma = 0.7: double
+    anisotropy_correction = None: longblob
+    clear_small_size = 5: int
+    clear_large_objects = 500: int
+    """
+
+    def get_postprocessing_config(self):
+        return inference.PostProcessConfig(
+            (PostProcessing() & self).fetch1("threshold"),
+            (PostProcessing() & self).fetch1("spot_sigma"),
+            (PostProcessing() & self).fetch1("outline_sigma"),
+            (PostProcessing() & self).fetch1("anisotropy_correction"),
+            (PostProcessing() & self).fetch1("clear_small_size"),
+            (PostProcessing() & self).fetch1("clear_large_objects"),
+        )
+
+
+@schema
 class BrainRegistration(dj.Computed):
     """Brain registration table. Contains the parameters of brainreg."""
 
@@ -179,11 +206,12 @@ class BrainRegistrationResults(dj.Computed):
 
 
 @schema
-class Inference(dj.Computed):
+class Segmentation(dj.Computed):
     """Semantic and Instance image segmentation"""
 
     definition = """  # semantic image segmentation
     -> BrainRegistrationResults.ContinuousRegion
+    -> PostProcessing
     ---
     semantic_labels: varchar(200)
     instance_labels: varchar(200)
@@ -224,7 +252,9 @@ class Inference(dj.Computed):
             reg_z_min : reg_z_max + 1,
         ]
         results = inference.inference_on_images(reg_cfos)
-        post_process = inference.post_processing(results)
+        post_process = inference.post_processing(
+            results, (PostProcessing() & key).get_postprocessing_config(key)
+        )
 
         infer = results[0]
         reg_semantic_labels = infer.semantic_segmentation
@@ -292,7 +322,7 @@ class Analysis(dj.Computed):
     """Analysis of the instance segmentation."""
 
     definition = """
-    -> Inference
+    -> Segmentation
     ---
     cell_counts : int
     filled_pixels: int
@@ -306,9 +336,9 @@ class Analysis(dj.Computed):
     def make(self, key):
         """Runs analysis on the instance segmentation."""
 
-        labels_path = (Inference() & key).fetch1("instance_labels")
+        labels_path = (Segmentation() & key).fetch1("instance_labels")
         labels = imio.load_any(labels_path)
-        stats_path = (Inference() & key).fetch1("stats")
+        stats_path = (Segmentation() & key).fetch1("stats")
         stats = pd.read_csv(stats_path)
 
         key["cell_counts"] = np.unique(labels.flatten()).size - 1
@@ -356,7 +386,7 @@ class Report(dj.Computed):
         email = (user.User() & key).fetch1("email")
         username = (user.User() & key).fetch1("name")
         stats = (Analysis() & key).get_stats_summary(key)
-        labels_path = (Inference() & key).fetch1("instance_labels")
+        labels_path = (Segmentation() & key).fetch1("instance_labels")
         labels = imio.load_any(labels_path)
 
         parent_path = (BrainRegistration() & key).fetch1("registration_path")

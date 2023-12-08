@@ -779,7 +779,7 @@ def main():
             logger.info(brg_results)
 
             st.sidebar.write("Starting segmentation of " + mouse_name)
-            inference = spim.Inference()
+            inference = spim.Segmentation()
             inference.populate()
 
             logger.info(inference)

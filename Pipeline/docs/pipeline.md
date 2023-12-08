@@ -84,40 +84,71 @@ brainreg_config.write_json_file_brainreg(dictionary=DICT)
 
 ### Populating manual tables
 
-As described in the section [Organisation of the DataJoint tables](datajoint_tables.md), the pipeline needs to manually "populate" the tables *Mouse*, *User*, *Scan* and its sub-class *Scan.ROIs* before populating automatic tables downstream. *Mouse* and *User* are declared in **```schema.mice```** and **```schema.user```** respectively, whereas *Scan* and *ROIs* are declared in **```schema.spim```**  The different keys (parameters) are described in details in [Organisation of the DataJoint tables](datajoint_tables.md). An example code would be:
+As described in the section [Organisation of the DataJoint tables](datajoint_tables.md), the pipeline needs to manually "populate" the tables *Mouse*, *User*, *Scan* and its dependent classes *ROIs* and *PostProcessing* before populating automatic tables downstream. *Mouse* and *User* are declared in **```schema.mice```** and **```schema.user```** respectively, whereas *Scan*,  *ROIs* and *PostProcessing* are declared in **```schema.spim```**. The different keys (parameters) are described in details in [Organisation of the DataJoint tables](datajoint_tables.md). An example code would be:
 
 ```
-from schema import mice, spim, user
-
-mice.Mouse().insert1(("mouse", 0, "2022-01-01", "U", "WT"), skip_duplicates=True)
-user.User().insert1(("cyril", "cyril.achard@epfl.ch"), skip_duplicates=True)
-
-scan = spim.Scan()
-
-cfos_path = path/to/cfos
-autofluo_path = path/to/autofluo
-time = "2022-01-01 16:16:16"
-
-gobal_names = ["primary visual area", "primary motor area", "retrosplenial area"]
-rois_list = determine_ids.extract_ids_of_selected_areas(
-    atlas_name="allen_mouse_25um",
-    list_global_names=gn
+"""Populate all tables as test."""
+test_mouse = mice.Mouse()
+test_mouse.insert1(
+    ("mouse_chickadee", 0, "2022-01-01", "U", "WT"), skip_duplicates=True
 )
+test_user = user.User()
+test_user.insert1(
+    ("cyril_tit", "cyril.achard@epfl.ch"), skip_duplicates=True
+)
+
+test_scan = spim.Scan()
+
+cfos_path = SCAN_PATH / Path(
+    "CHICKADEE_Mag1.25x_Tile0_Ch561_Sh0_Rot0.tiff"
+)
+autofluo_path = SCAN_PATH / Path(
+    "CHICKADEE_Mag1.25x_Tile0_Ch488_Sh0_Rot0.tiff"
+)
+logger.info(f"File for cFOS : {cfos_path}")
+logger.info(f"File for autofluo : {autofluo_path}")
+time = "2022-01-01 16:16:16"
 
 test_scan.insert1(
     (
-        "mouse",
+        "mouse_chickadee",
         0,
-        "cyril",
+        "cyril_tit",
         autofluo_path,
         cfos_path,
-        time
+        time,
+    ),
+    skip_duplicates=True,
+)
+gn = ["primary visual area", "primary motor area", "retrosplenial area"]
+rois_list = determine_ids.extract_ids_of_selected_areas(
+    atlas_name="allen_mouse_25um", list_global_names=gn
+)
+test_scan_part = spim.ROIs()
+test_scan_part.insert1(
+    (
+        "mouse_chickadee",
+        0,
+        0,
+        rois_list,
     ),
     skip_duplicates=True,
 )
 
-test_scan_part = spim.ROIs()
-test_scan_part.insert1((0, rois_list), skip_duplicates=True)
+test_scan_postprocess = spim.PostProcessing()
+test_scan_postprocess.insert1(
+    (
+        "mouse_chickadee",
+        0,
+        0,
+        0.65,
+        0.7,
+        0.7,
+        5,
+        500,
+    ),
+    skip_duplicates=True,
+)
 ```
 
 ROI IDs can be determined in 3 ways:
@@ -137,7 +168,7 @@ test_brainreg.populate()
 test_brg_results = spim.BrainRegistrationResults()
 test_brg_results.populate()
 
-test_inference = spim.Inference()
+test_inference = spim.Segmentation()
 test_inference.populate()
 
 test_analysis = spim.Analysis()
@@ -155,7 +186,7 @@ This approach requires Streamlit and is based on the .py file **```user_inteface
 streamlit run user_interface.py
 ```
 
-The user should see the following interface whit 4 section, where he respectively has to enter parameters for the brain registration, the mouse, the user and the scan tables. Please go to [Parameters for the brain registration](parameters_brainreg.md) and [Orgnisation of the DataJoint tables](datajoint_tables.md) for more information.
+The user should see the following interface whit 4 section, where he respectively has to enter parameters for the mouse brain scans, brain registration, the user and post-processing. Please go to [Parameters for the brain registration](parameters_brainreg.md) and [Orgnisation of the DataJoint tables](datajoint_tables.md) for more information.
 
 ```{figure} ./images/streamlit.png
 ---

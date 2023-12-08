@@ -607,7 +607,11 @@ def main():
             st.write("The following areas have been selected")
             st.dataframe(filtered_df)
     if rois_choice == "Select the whole brain":
-        rois_ids = [8]
+        rois_ids = (
+            BrainGlobeAtlas(atlas_name, check_latest=False)
+            .lookup_df["id"]
+            .values.tolist()
+        )
 
     st.header("Determining the postprocessing parameters")
 

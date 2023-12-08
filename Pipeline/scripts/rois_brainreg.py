@@ -33,14 +33,14 @@ class BrainRegions:
         coordinates_regions (dict{roi_id : coordinates}): dictionnary of cropping coordinates of cont. regions
         """
         self.CFOS = imio.load_any(CFOS_path)
-        Atlas_rois = self.compute_rois(
+        Atlas_rois, self.ROI_Masks = self.compute_rois(
             registred_atlas_path, roi_ids, self.CFOS.shape
         )
         self.coordinates_rois = self.compute_coordinates(Atlas_rois, roi_ids)
         del Atlas_rois
         (
             Atlas_regions,
-            self.Masks,
+            self.Cont_Masks,
             self.num_regions,
         ) = self.compute_continuous_regions(
             registred_atlas_path, roi_ids, self.CFOS.shape
@@ -60,13 +60,26 @@ class BrainRegions:
         Returns:
             rAtlas_rois (numpy_array(int)): upscaled registred atlas image with ROIs
         """
+        whole_brain = len(roi_ids) > 830
         # Load the atlas
         rAtlas = imio.load_any(registred_atlas_path)
         # Select only rehions of interest
-        rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
+        if not whole_brain:
+            rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
         # Rescale atlas to the shape of yur CFOS image
         rAtlas_rois = brg_utils.rescale_labels(rAtlas, CFOS_shape)
-        return rAtlas_rois
+
+        Masks = {}
+        for roi_id in roi_ids:
+            mask = np.isin(rAtlas_rois, roi_id)
+            if np.any(mask):
+                Masks[roi_id] = [
+                    csr_matrix(mask.reshape(mask.shape[0], -1)),
+                    mask.shape,
+                ]
+            del mask
+
+        return rAtlas_rois, Masks
 
     def compute_continuous_regions(
         self, registred_atlas_path, roi_ids, CFOS_shape
@@ -81,22 +94,43 @@ class BrainRegions:
             rAtlas_regions (numpy_array(int)): upscaled registred atlas image with continuous regions
             num_regions (int): number of continuous regions
         """
+        whole_brain = len(roi_ids) > 830
         # Load the atlas
         rAtlas = imio.load_any(registred_atlas_path)
-        # Select only rehions of interest
-        rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
-        # Put the id of every selected region to 1, to extract continuous regions
-        rAtlas[rAtlas != 0] = 1
-        # Determinate continuous regions with label from skimage.measure
-        rAtlas_regions, num_regions = label(rAtlas, return_num=True)
-        # Rescale atlas to the shape of yur CFOS image
-        rAtlas_regions = brg_utils.rescale_labels(rAtlas_regions, CFOS_shape)
-
+        # Select only regions of interest
         Masks = {}
-        for roi_id in range(1, num_regions + 1):
-            Masks[roi_id] = np.isin(rAtlas_regions, roi_id)
-
-        return rAtlas_regions, Masks, num_regions
+        if not whole_brain:
+            rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
+            # Put the id of every selected region to 1, to extract continuous regions
+            rAtlas[rAtlas != 0] = 1
+            # Determinate continuous regions with label from skimage.measure
+            rAtlas_regions, num_regions = label(rAtlas, return_num=True)
+            # Rescale atlas to the shape of yur CFOS image
+            rAtlas_regions = brg_utils.rescale_labels(
+                rAtlas_regions, CFOS_shape
+            )
+            for roi_id in range(1, num_regions + 1):
+                mask = np.isin(rAtlas_regions, roi_id)
+                Masks[roi_id] = [
+                    csr_matrix(mask.reshape(mask.shape[0], -1)),
+                    mask.shape,
+                ]
+                del mask
+            return rAtlas_regions, Masks, num_regions
+        else:
+            rAtlas[rAtlas != 0] = 1
+            num_regions = 1
+            rAtlas_regions = brg_utils.rescale_labels(
+                rAtlas_regions, CFOS_shape
+            )
+            for roi_id in range(1, num_regions + 1):
+                mask = np.isin(rAtlas_regions, roi_id)
+                Masks[roi_id] = [
+                    csr_matrix(mask.reshape(mask.shape[0], -1)),
+                    mask.shape,
+                ]
+                del mask
+            return rAtlas_regions, Masks, num_regions
 
     def compute_coordinates(self, rAtlas_regions_upscaled, list_ids):
         """Compute the coordinates of regions of the upscaled registred atlas.

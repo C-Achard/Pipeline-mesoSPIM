@@ -33,14 +33,42 @@ class Scan(dj.Manual):
 
 ### ROIs
 
-This table represents the list of ids of regions of interest defined by the user on which the segmentation will be performed. This table is also manually defined by the user, inherits *Scan* and has been initially implemented the avoid the necessity to run the brain registration whenever a new set of ids is given to the pipeline.
+This table represents the list of ids of regions of interest defined by the user on which the segmentation will be performed. This table is manually defined by the user, inherits *Scan* and has been initially implemented the avoid the necessity to run the brain registration whenever a new set of ids is given to the pipeline.
 
 A *ROIs* table needs:
 - An integer (unique number for each set of ids)
 - A list of ids representing labels on a registered atlas
 
 ```{note}
-The integer represeting the set of ids has to be implemented because DataJoint doesn't allow lists as primary keys
+The integer representing the set of ids has to be implemented because DataJoint doesn't allow lists as primary keys
+```
+
+```
+@schema
+class ROIs(dj.Part):
+     """The list of ids of regions of interest for segmentation"""
+     definition = """
+     ids_key : int
+     ---
+     regions_of_interest_ids : longblob
+     """
+...
+```
+
+### Postprocessing
+
+This table represents the different postprocessing parameters that are applied after performing semantic segmenation in order to improve instance segmentation. This table is also manually defined by the user, inherits *Scan* and has been  implemented the avoid the necessity to run the brain registration and compute continuous regions whenever a new set of paramters is given.
+
+A *Postprocessing* table needs:
+- An integer (unique number for each set of parametrs)
+- A threshold
+- A sigma spot
+- A sigma outline
+- A size for clearing small objects
+- A size for clearing large objects
+
+```{note}
+The integer representing the set of parameters has to be implemented because DataJoint doesn't allow lists as primary keys
 ```
 
 ```
@@ -178,30 +206,33 @@ name: registered-atlas-cont
 Registered atlas cropped with the continuous regions determined by the primary motor cortex, the primary visual cortex and the retrosplenial area. In our case, we have a single continuous region.
 ```
 
-### Inference
+### Segmentation
 
-This table automatically performes semantic and instance segmentaion on inherited *BrainRegistrationResults.ContinuousRegion* tables. Cropped cFOS images (with background intact) defined by the coordinates of the bounding box are passed to the segmentaion.
+This table automatically performes semantic and instance segmentaion on inherited *BrainRegistrationResults.ContinuousRegion* and *PostProcessing* tables. Cropped cFOS images (with background intact) defined by the coordinates of the bounding box are passed to the segmentaion.
 
 An *Inference* table stores:
 - The path to semantic labels
 - The path to instance labels
 - The path to the statistics file
+- The path to the statistics file for the resized labels (with anistropy correction)
 
 ```{note}
-The semantic, instance labels and the statistics files are sored in a directory called "inference_results" in the same folder where the script running the pipeline has been created.
+The semantic, instance labels and the statistics files are sored in a directory called "inference_results" in the same folder of the registration output.
 ```
 
 ```
 @schema
-class Inference(dj.Computed):
-    """Semantic image segmentation"""
+class Segmentation(dj.Computed):
+    """Semantic and Instance image segmentation"""
 
     definition = """  # semantic image segmentation
     -> BrainRegistrationResults.ContinuousRegion
+    -> PostProcessing
     ---
     semantic_labels: varchar(200)
     instance_labels: varchar(200)
     stats: varchar(200)
+    stats_resized: varchar(200)
     """
 ...
 ```
@@ -222,7 +253,7 @@ Results of the instance segmentation on the bounding box of the continuous regio
 
 ### Analysis
 
-This table, inheriting *Inference*, automatically stores different statistical data from the stats.csv file from *Inference*.
+This table, inheriting *Segmentation*, automatically stores different statistical data from the stats.csv file from *Segmentation*.
 
 An *Analysis* table stores:
 - The number of cells segmented in the continuous region
@@ -239,7 +270,7 @@ class Analysis(dj.Computed):
     """Analysis of the instance segmentation."""
 
     definition = """
-    -> Inference
+    -> Segmentation
     ---
     cell_counts : int
     filled_pixels: int

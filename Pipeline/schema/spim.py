@@ -74,6 +74,14 @@ class PostProcessing(dj.Manual):
     clear_large_objects = 500: int
     """
 
+    _default = {
+        "threshold": 0.65,
+        "spot_sigma": 0.7,
+        "outline_sigma": 0.7,
+        "clear_small_size": 5,
+        "clear_large_objects": 500,
+    }
+
     def get_postprocessing_config(self):
         return inference.PostProcessConfig(
             (PostProcessing() & self).fetch1("threshold"),

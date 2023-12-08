@@ -4,6 +4,7 @@ import brainreg_utils as brg_utils
 import imio
 import numpy as np
 from skimage.measure import label
+from scipy.sparse import csr_matrix
 
 
 @dataclass
@@ -67,6 +68,7 @@ class BrainRegions:
         if not whole_brain:
             rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
         # Rescale atlas to the shape of yur CFOS image
+        print("Rescaling labels")
         rAtlas_rois = brg_utils.rescale_labels(rAtlas, CFOS_shape)
 
         Masks = {}
@@ -107,6 +109,7 @@ class BrainRegions:
             # Determinate continuous regions with label from skimage.measure
             rAtlas_regions, num_regions = label(rAtlas, return_num=True)
             # Rescale atlas to the shape of yur CFOS image
+            print("Rescaling labels")
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
             )

@@ -31,7 +31,7 @@ except Exception as e:
 
 # from schema import mice, spim, user
 
-from scripts import brainreg_config, determine_ids, brainreg_utils, inference
+from scripts import brainreg_config, determine_ids, brainreg_utils
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -779,10 +779,10 @@ def main():
             logger.info(brg_results)
 
             st.sidebar.write("Starting segmentation of " + mouse_name)
-            inference = spim.Segmentation()
-            inference.populate()
+            segmentation = spim.Segmentation()
+            segmentation.populate()
 
-            logger.info(inference)
+            logger.info(segmentation)
 
             analysis = spim.Analysis()
             analysis.populate()

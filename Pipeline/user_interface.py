@@ -605,11 +605,14 @@ def main():
             st.write("The following areas have been selected")
             st.dataframe(filtered_df)
     if rois_choice == "Select the whole brain":
-        rois_ids = (
-            BrainGlobeAtlas(atlas_name, check_latest=False)
-            .lookup_df["id"]
-            .values.tolist()
-        )
+        bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
+        df = bg_atlas.lookup_df
+        list_acro = [
+            acronym
+            for acronym in bg_atlas.get_structure_descendants("grey")
+            if not bg_atlas.get_structure_descendants(acronym)
+        ]
+        rois_ids = df[df["acronym"].isin(list_acro)]["id"].values.tolist()
 
     st.header("Determining the postprocessing parameters")
 

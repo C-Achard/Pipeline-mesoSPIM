@@ -4,7 +4,7 @@ from bg_atlasapi import BrainGlobeAtlas
 from pprint import pprint
 
 
-def select_areas_containing_specified_name(dataframe, global_name):
+def select_areas_containing_specified_name(dataframe, bg_atlas, global_name):
     """This function allows to extract all the names of sub-areas (ROIs) listed by the atlas
     from the name of the global area (global_name). For example, global_name is primary visual area, it will
     retrieve primary visual area - layer 1, primary visual area - layer 2&3, etc.
@@ -21,12 +21,14 @@ def select_areas_containing_specified_name(dataframe, global_name):
     ]
     # For the name of the global area, the dataframe contains a special ID
     # However, we are only interested in the sub-sections
-    rslt_df_1["occurrence_coma"] = rslt_df_1["name"].str.count(",")
-    max_coma = np.max(rslt_df_1["occurrence_coma"].values)
-    rslt_df_2 = rslt_df_1.loc[rslt_df_1["occurrence_coma"] == max_coma]
-    if rslt_df_2.empty:
+    descendants_list = [
+        rslt_df_1.loc[rslt_df_1["acronym"] == acronym]["name"].values[0]
+        for acronym in np.unique(rslt_df_1["acronym"]).tolist()
+        if not bg_atlas.get_structure_descendants(acronym)
+    ]
+    if not descendants_list:
         print(global_name + ": global name not part of the atlas nomenclature")
-    return rslt_df_2["name"].values
+    return descendants_list
 
 
 def extract_ids_of_selected_areas(
@@ -58,7 +60,7 @@ def extract_ids_of_selected_areas(
         if list_global_names:
             for global_name in list_global_names:
                 list_specific_names = select_areas_containing_specified_name(
-                    df, global_name
+                    df, bg_atlas, global_name
                 )
                 for specific_name in list_specific_names:
                     rslt_df = df.loc[df["name"] == specific_name.lower()]

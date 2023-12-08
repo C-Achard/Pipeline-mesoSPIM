@@ -40,7 +40,7 @@ class Scan(dj.Manual):
     timestamp = CURRENT_TIMESTAMP: timestamp
     """
 
-    def get_shape(self, key):
+    def get_shape(self):
         """Returns the shape of the scan."""
         path = (Scan() & self).fetch1("autofluo_path")
         image = imio.load_any(path)
@@ -76,12 +76,12 @@ class PostProcessing(dj.Manual):
 
     def get_postprocessing_config(self, key):
         return inference.PostProcessConfig(
-            (PostProcessing() & self).fetch1("threshold"),
-            (PostProcessing() & self).fetch1("spot_sigma"),
-            (PostProcessing() & self).fetch1("outline_sigma"),
+            (self & key).fetch1("threshold"),
+            (self & key).fetch1("spot_sigma"),
+            (self & key).fetch1("outline_sigma"),
             None,
-            (PostProcessing() & self).fetch1("clear_small_size"),
-            (PostProcessing() & self).fetch1("clear_large_objects"),
+            (self & key).fetch1("clear_small_size"),
+            (self & key).fetch1("clear_large_objects"),
         )
 
 

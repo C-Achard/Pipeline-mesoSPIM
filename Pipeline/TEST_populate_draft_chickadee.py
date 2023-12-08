@@ -80,6 +80,7 @@ def test_populate():
             0,
         ),
         skip_duplicates=True,
+        ignore_extra_fields=True,
     )
 
     logger.info(test_scan)

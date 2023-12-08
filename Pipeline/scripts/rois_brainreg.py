@@ -73,6 +73,7 @@ class BrainRegions:
         for roi_id in roi_ids:
             mask = np.isin(rAtlas_rois, roi_id)
             if np.any(mask):
+                print("Creating mask for ROI " + str(roi_id))
                 Masks[roi_id] = [
                     csr_matrix(mask.reshape(mask.shape[0], -1)),
                     mask.shape,
@@ -110,6 +111,7 @@ class BrainRegions:
                 rAtlas_regions, CFOS_shape
             )
             for roi_id in range(1, num_regions + 1):
+                print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)
                 Masks[roi_id] = [
                     csr_matrix(mask.reshape(mask.shape[0], -1)),
@@ -124,6 +126,7 @@ class BrainRegions:
                 rAtlas_regions, CFOS_shape
             )
             for roi_id in range(1, num_regions + 1):
+                print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)
                 Masks[roi_id] = [
                     csr_matrix(mask.reshape(mask.shape[0], -1)),

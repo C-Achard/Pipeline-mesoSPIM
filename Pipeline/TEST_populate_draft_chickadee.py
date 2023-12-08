@@ -78,9 +78,13 @@ def test_populate():
             "mouse_chickadee",
             0,
             0,
+            0.65,
+            0.7,
+            0.7,
+            5,
+            500,
         ),
         skip_duplicates=True,
-        ignore_extra_fields=True,
     )
 
     logger.info(test_scan)

@@ -73,7 +73,7 @@ def test_populate():
     )
 
     test_scan_postprocess = spim.PostProcessing()
-    test_scan_postprocess.instert1(
+    test_scan_postprocess.insert1(
         (
             "mouse_chickadee",
             0,

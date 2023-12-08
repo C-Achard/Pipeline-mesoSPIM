@@ -750,7 +750,7 @@ def main():
             )
 
             scan_postprocess = spim.PostProcessing()
-            scan_postprocess.instert1(
+            scan_postprocess.insert1(
                 (
                     mouse_name.lower(),
                     scan_attempt,

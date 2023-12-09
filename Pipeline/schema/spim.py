@@ -178,7 +178,8 @@ class BrainRegistrationResults(dj.Computed):
                 value[0],
             )
         for k, value in brain_regions.ROI_Masks.items():
-            save_npz(parent_path / Path("mask_roi_" + str(k)), value[0])
+            if not (parent_path / Path("mask_roi_" + str(k))).is_file():
+                save_npz(parent_path / Path("mask_roi_" + str(k)), value[0])
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
@@ -188,12 +189,12 @@ class BrainRegistrationResults(dj.Computed):
                 mask_shape_x=brain_regions.Cont_Masks[num][1][0],
                 mask_shape_y=brain_regions.Cont_Masks[num][1][1],
                 mask_shape_z=brain_regions.Cont_Masks[num][1][2],
-                x_min=brain_regions.coordinates_regions[num].xmin,
-                x_max=brain_regions.coordinates_regions[num].xmax,
-                y_min=brain_regions.coordinates_regions[num].ymin,
-                y_max=brain_regions.coordinates_regions[num].ymax,
-                z_min=brain_regions.coordinates_regions[num].zmin,
-                z_max=brain_regions.coordinates_regions[num].zmax,
+                x_min=brain_regions.Cont_Masks[num][2].xmin,
+                x_max=brain_regions.Cont_Masks[num][2].xmax,
+                y_min=brain_regions.Cont_Masks[num][2].ymin,
+                y_max=brain_regions.Cont_Masks[num][2].ymax,
+                z_min=brain_regions.Cont_Masks[num][2].zmin,
+                z_max=brain_regions.Cont_Masks[num][2].zmax,
             )
             for num in brain_regions.coordinates_regions
         )
@@ -205,12 +206,12 @@ class BrainRegistrationResults(dj.Computed):
                 mask_shape_x=brain_regions.ROI_Masks[num][1][0],
                 mask_shape_y=brain_regions.ROI_Masks[num][1][1],
                 mask_shape_z=brain_regions.ROI_Masks[num][1][2],
-                x_min=brain_regions.coordinates_rois[num].xmin,
-                x_max=brain_regions.coordinates_rois[num].xmax,
-                y_min=brain_regions.coordinates_rois[num].ymin,
-                y_max=brain_regions.coordinates_rois[num].ymax,
-                z_min=brain_regions.coordinates_rois[num].zmin,
-                z_max=brain_regions.coordinates_rois[num].zmax,
+                x_min=brain_regions.ROI_Masks[num][2].xmin,
+                x_max=brain_regions.ROI_Masks[num][2].xmax,
+                y_min=brain_regions.ROI_Masks[num][2].ymin,
+                y_max=brain_regions.ROI_Masks[num][2].ymax,
+                z_min=brain_regions.ROI_Masks[num][2].zmin,
+                z_max=brain_regions.ROI_Masks[num][2].zmax,
             )
             for num in brain_regions.coordinates_rois
         )
@@ -285,7 +286,7 @@ class Segmentation(dj.Computed):
             mouse_name
             + "_semantic_cont_reg_"
             + str(cont_region_id)
-            + "_"
+            + "_ids_key_"
             + str(att)
             + ".tiff"
         )
@@ -295,7 +296,7 @@ class Segmentation(dj.Computed):
             mouse_name
             + "_instance_seg_cont_reg_"
             + str(cont_region_id)
-            + "_"
+            + "_ids_key_"
             + str(att)
             + ".tiff"
         )
@@ -305,7 +306,7 @@ class Segmentation(dj.Computed):
             mouse_name
             + "_stats_seg_cont_reg_"
             + str(cont_region_id)
-            + "_"
+            + "_ids_key_"
             + str(att)
             + ".csv"
         )
@@ -315,7 +316,7 @@ class Segmentation(dj.Computed):
             mouse_name
             + "_stats_resized_seg_cont_reg_"
             + str(cont_region_id)
-            + "_"
+            + "_ids_key_"
             + str(att)
             + ".csv"
         )

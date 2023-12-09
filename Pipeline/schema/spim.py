@@ -164,11 +164,17 @@ class BrainRegistrationResults(dj.Computed):
             registred_atlas_path, CFOS_path, roi_ids
         )
         for k, value in brain_regions.Cont_Masks.items():
-            save_npz(
+            if not (
                 parent_path
-                / Path("mask_cont_reg_" + str(k) + "_ids_key_" + str(id_key)),
-                value[0],
-            )
+                / Path("mask_cont_reg_" + str(k) + "_ids_key_" + str(id_key))
+            ).is_file():
+                save_npz(
+                    parent_path
+                    / Path(
+                        "mask_cont_reg_" + str(k) + "_ids_key_" + str(id_key)
+                    ),
+                    value[0],
+                )
         for k, value in brain_regions.ROI_Masks.items():
             if not (parent_path / Path("mask_roi_" + str(k))).is_file():
                 save_npz(parent_path / Path("mask_roi_" + str(k)), value[0])

@@ -40,6 +40,11 @@ class Scan(dj.Manual):
     timestamp = CURRENT_TIMESTAMP: timestamp
     """
 
+    def get_shape(self):
+        path = (self & key).feth1("autofluo_path")
+        scan = imio.load_any(path)
+        return scan.shape
+
 
 @schema
 class ROIs(dj.Manual):
@@ -116,8 +121,6 @@ class BrainRegistrationResults(dj.Computed):
     definition = """
     -> BrainRegistration
     -> ROIs
-    ---
-    scan_shape: longblob
     """
 
     class BrainregROI(dj.Part):
@@ -183,7 +186,6 @@ class BrainRegistrationResults(dj.Computed):
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
-                scan_shape=brain_regions.cFOS_shape,
                 cont_region_id=num,
                 mask=parent_path / Path("mask_cont_reg_" + str(num) + ".npz"),
                 mask_shape=brain_regions.Cont_Masks[num][1],
@@ -199,7 +201,6 @@ class BrainRegistrationResults(dj.Computed):
         BrainRegistrationResults.BrainregROI.insert(
             dict(
                 key,
-                scan_shape=brain_regions.cFOS_shape,
                 roi_id=num,
                 mask=parent_path / Path("mask_roi_" + str(num) + ".npz"),
                 mask_shape=brain_regions.ROI_Masks[num][1],

@@ -16,6 +16,17 @@ from schema import mice, spim, user
 from scripts import brainreg_config, determine_ids, brainreg_utils
 
 
+def get_scan_shape(name, scan_attempt):
+    query_shape = spim.Scan() & f"scan_attempt='{scan_attempt}'"
+    query_shape = query_shape.fetch(as_dict=True)
+    scan_shape = [
+        imio.load_any(table["autofluo_path"]).shape
+        for table in query_shape
+        if table["mouse_name"] == name
+    ][0]
+    return scan_shape
+
+
 def display_resized_atlas(
     name, scan_attempt, viewer, ids_key=0, add_crop=False
 ):
@@ -67,6 +78,8 @@ def display_cropped_rois_instance_labels(name, scan_attempt, roi_ids, viewer):
 
 
 def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
+    shape = get_scan_shape(name, scan_attempt)
+
     query_reg = (
         spim.BrainRegistrationResults.BrainregROI()
         & f"scan_attempt='{scan_attempt}'"
@@ -85,7 +98,7 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
             table["z_min"],
             table["z_max"],
             table["ids_key"],
-            imio.load_any(table["autofluo_path"]).shape,
+            shape,
         ]
         for table in query_reg
         if table["mouse_name"] == name and table["roi_id"] == roi_id
@@ -130,6 +143,8 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
 def display_cropped_continuous_instance_labels(
     name, scan_attempt, ids_key, viewer
 ):
+    shape = get_scan_shape(name, scan_attempt)
+
     query_reg = (
         spim.BrainRegistrationResults.ContinuousRegion()
         & f"scan_attempt='{scan_attempt}'"
@@ -148,7 +163,7 @@ def display_cropped_continuous_instance_labels(
             table["y_max"],
             table["z_min"],
             table["z_max"],
-            imio.load_any(table["autofluo_path"]).shape,
+            shape,
         ]
         for table in query_reg
         if table["mouse_name"] == name

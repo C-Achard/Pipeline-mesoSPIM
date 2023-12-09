@@ -183,6 +183,7 @@ class BrainRegistrationResults(dj.Computed):
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
+                scan_shape=brain_regions.cFOS_shape,
                 cont_region_id=num,
                 mask=parent_path / Path("mask_cont_reg_" + str(num) + ".npz"),
                 mask_shape=brain_regions.Cont_Masks[num][1],
@@ -198,6 +199,7 @@ class BrainRegistrationResults(dj.Computed):
         BrainRegistrationResults.BrainregROI.insert(
             dict(
                 key,
+                scan_shape=brain_regions.cFOS_shape,
                 roi_id=num,
                 mask=parent_path / Path("mask_roi_" + str(num) + ".npz"),
                 mask_shape=brain_regions.ROI_Masks[num][1],

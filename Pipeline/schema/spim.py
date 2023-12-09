@@ -40,10 +40,6 @@ class Scan(dj.Manual):
     timestamp = CURRENT_TIMESTAMP: timestamp
     """
 
-    def get_shape(self, path):
-        scan = imio.load_any(path)
-        return scan.shape
-
 
 @schema
 class ROIs(dj.Manual):
@@ -180,7 +176,6 @@ class BrainRegistrationResults(dj.Computed):
         for k, value in brain_regions.ROI_Masks.items():
             if not (parent_path / Path("mask_roi_" + str(k))).is_file():
                 save_npz(parent_path / Path("mask_roi_" + str(k)), value[0])
-        key["scan_shape"] = brain_regions.cFOS_shape
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(

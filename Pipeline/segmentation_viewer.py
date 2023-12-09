@@ -85,7 +85,7 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
             table["z_min"],
             table["z_max"],
             table["ids_key"],
-            table["scan_shape"],
+            imio.load_any(table["autofluo_path"]).shape,
         ]
         for table in query_reg
         if table["mouse_name"] == name and table["roi_id"] == roi_id
@@ -148,7 +148,7 @@ def display_cropped_continuous_instance_labels(
             table["y_max"],
             table["z_min"],
             table["z_max"],
-            table["scan_shape"],
+            imio.load_any(table["autofluo_path"]).shape,
         ]
         for table in query_reg
         if table["mouse_name"] == name

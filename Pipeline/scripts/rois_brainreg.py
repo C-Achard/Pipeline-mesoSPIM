@@ -33,12 +33,14 @@ class BrainRegions:
         coordinates_rois (dict{roi_id : coordinates}): dictionnary of cropping coordinates of ROIs
         coordinates_regions (dict{roi_id : coordinates}): dictionnary of cropping coordinates of cont. regions
         """
-        self.CFOS = imio.load_any(CFOS_path)
+        CFOS = imio.load_any(CFOS_path)
+        self.cFOS_shape = CFOS.shape
+        del CFOS
         self.ROI_Masks = self.compute_rois(
-            registred_atlas_path, roi_ids, self.CFOS.shape
+            registred_atlas_path, roi_ids, self.cFOS_shape
         )
         self.Cont_Masks = self.compute_continuous_regions(
-            registred_atlas_path, roi_ids, self.CFOS.shape
+            registred_atlas_path, roi_ids, self.cFOS_shape
         )
 
     def compute_rois(self, registred_atlas_path, roi_ids, CFOS_shape):
@@ -65,7 +67,7 @@ class BrainRegions:
         for roi_id in roi_ids:
             mask = np.isin(rAtlas_rois, roi_id)
             if np.any(mask):
-                coos = compute_coordinates(mask)
+                coos = self.compute_coordinates(mask)
                 mask = mask[
                     coos.xmin : coos.xmax + 1,
                     coos.ymin : coos.ymax + 1,
@@ -114,7 +116,7 @@ class BrainRegions:
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)
-                coos = compute_coordinates(mask)
+                coos = self.compute_coordinates(mask)
                 mask = mask[
                     coos.xmin : coos.xmax + 1,
                     coos.ymin : coos.ymax + 1,
@@ -137,7 +139,7 @@ class BrainRegions:
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)
-                coos = compute_coordinates(mask)
+                coos = self.compute_coordinates(mask)
                 mask = mask[
                     coos.xmin : coos.xmax + 1,
                     coos.ymin : coos.ymax + 1,

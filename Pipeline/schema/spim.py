@@ -40,12 +40,6 @@ class Scan(dj.Manual):
     timestamp = CURRENT_TIMESTAMP: timestamp
     """
 
-    def get_shape(self):
-        """Returns the shape of the scan."""
-        path = (Scan() & self).fetch1("autofluo_path")
-        image = imio.load_any(path)
-        return image.shape
-
 
 @schema
 class ROIs(dj.Manual):
@@ -122,6 +116,8 @@ class BrainRegistrationResults(dj.Computed):
     definition = """
     -> BrainRegistration
     -> ROIs
+    ---
+    scan_shape: longblob
     """
 
     class BrainregROI(dj.Part):
@@ -132,9 +128,7 @@ class BrainRegistrationResults(dj.Computed):
         roi_id : int
         ---
         mask: varchar(200)
-        mask_shape_x : int
-        mask_shape_y : int
-        mask_shape_z : int
+        mask_shape: longblob
         x_min : int
         x_max : int
         y_min : int
@@ -151,9 +145,7 @@ class BrainRegistrationResults(dj.Computed):
         cont_region_id : int
         ---
         mask: varchar(200)
-        mask_shape_x : int
-        mask_shape_y : int
-        mask_shape_z : int
+        mask_shape: longblob
         x_min : int
         x_max : int
         y_min : int
@@ -180,15 +172,14 @@ class BrainRegistrationResults(dj.Computed):
         for k, value in brain_regions.ROI_Masks.items():
             if not (parent_path / Path("mask_roi_" + str(k))).is_file():
                 save_npz(parent_path / Path("mask_roi_" + str(k)), value[0])
+        key["scan_shape"] = brain_regions.cFOS_shape
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
                 cont_region_id=num,
                 mask=parent_path / Path("mask_cont_reg_" + str(num) + ".npz"),
-                mask_shape_x=brain_regions.Cont_Masks[num][1][0],
-                mask_shape_y=brain_regions.Cont_Masks[num][1][1],
-                mask_shape_z=brain_regions.Cont_Masks[num][1][2],
+                mask_shape=brain_regions.Cont_Masks[num][1],
                 x_min=brain_regions.Cont_Masks[num][2].xmin,
                 x_max=brain_regions.Cont_Masks[num][2].xmax,
                 y_min=brain_regions.Cont_Masks[num][2].ymin,
@@ -203,9 +194,7 @@ class BrainRegistrationResults(dj.Computed):
                 key,
                 roi_id=num,
                 mask=parent_path / Path("mask_roi_" + str(num) + ".npz"),
-                mask_shape_x=brain_regions.ROI_Masks[num][1][0],
-                mask_shape_y=brain_regions.ROI_Masks[num][1][1],
-                mask_shape_z=brain_regions.ROI_Masks[num][1][2],
+                mask_shape=brain_regions.ROI_Masks[num][1],
                 x_min=brain_regions.ROI_Masks[num][2].xmin,
                 x_max=brain_regions.ROI_Masks[num][2].xmax,
                 y_min=brain_regions.ROI_Masks[num][2].ymin,

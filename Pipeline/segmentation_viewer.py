@@ -77,13 +77,7 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
             load_npz(table["mask"])
             .toarray()
             .astype("bool")
-            .reshape(
-                (
-                    table["mask_shape_x"],
-                    table["mask_shape_y"],
-                    table["mask_shape_z"],
-                )
-            ),
+            .reshape(table["mask_shape"]),
             table["x_min"],
             table["x_max"],
             table["y_min"],
@@ -91,10 +85,14 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
             table["z_min"],
             table["z_max"],
             table["ids_key"],
+            table["scan_shape"],
         ]
         for table in query_reg
         if table["mouse_name"] == name and table["roi_id"] == roi_id
     }
+
+    for key in Masks:
+        Masks[key][0] = Masks[key][0]
 
     ids_key_view = 0
     for key in Masks:
@@ -112,7 +110,7 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
     }
 
     for key in Masks:
-        sample = np.zeros_like(Masks[key][0])
+        sample = np.zeros_like(Masks[key][8])
         sample[
             Masks[key][1] : Masks[key][2] + 1,
             Masks[key][3] : Masks[key][4] + 1,
@@ -137,19 +135,14 @@ def display_cropped_continuous_instance_labels(
             load_npz(table["mask"])
             .toarray()
             .astype("bool")
-            .reshape(
-                (
-                    table["mask_shape_x"],
-                    table["mask_shape_y"],
-                    table["mask_shape_z"],
-                )
-            ),
+            .reshape(table["mask_shape"]),
             table["x_min"],
             table["x_max"],
             table["y_min"],
             table["y_max"],
             table["z_min"],
             table["z_max"],
+            table["scan_shape"],
         ]
         for table in query_reg
         if table["mouse_name"] == name
@@ -168,7 +161,7 @@ def display_cropped_continuous_instance_labels(
     }
 
     for key in Masks:
-        sample = np.zeros_like(Masks[key][0])
+        sample = np.zeros_like(Masks[key][7])
         sample[
             Masks[key][1] : Masks[key][2] + 1,
             Masks[key][3] : Masks[key][4] + 1,

@@ -193,7 +193,7 @@ class BrainRegistrationResults(dj.Computed):
                 z_min=brain_regions.Cont_Masks[num][2].zmin,
                 z_max=brain_regions.Cont_Masks[num][2].zmax,
             )
-            for num in brain_regions.coordinates_regions
+            for num in brain_regions.ROI_Masks
         )
         BrainRegistrationResults.BrainregROI.insert(
             dict(
@@ -208,7 +208,7 @@ class BrainRegistrationResults(dj.Computed):
                 z_min=brain_regions.ROI_Masks[num][2].zmin,
                 z_max=brain_regions.ROI_Masks[num][2].zmax,
             )
-            for num in brain_regions.coordinates_rois
+            for num in brain_regions.ROI_Masks
         )
 
 

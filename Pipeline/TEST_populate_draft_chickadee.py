@@ -58,13 +58,13 @@ def test_populate():
         skip_duplicates=True,
     )
     gn = ["primary visual area", "primary motor area", "retrosplenial area"]
-    # rois_list = determine_ids.extract_ids_of_selected_areas(
-    #   atlas_name="allen_mouse_25um", list_global_names=gn
-    # )
+    rois_list = determine_ids.extract_ids_of_selected_areas(
+        atlas_name="allen_mouse_25um", list_global_names=gn
+    )
 
-    bg_atlas = BrainGlobeAtlas("allen_mouse_25um", check_latest=False)
-    df = bg_atlas.lookup_df
-    rois_list = df["id"].values.tolist()
+    # bg_atlas = BrainGlobeAtlas("allen_mouse_25um", check_latest=False)
+    # df = bg_atlas.lookup_df
+    # rois_list = df["id"].values.tolist()
 
     # rois_list = [656, 962, 767]
     test_scan_part = spim.ROIs()
@@ -72,7 +72,7 @@ def test_populate():
         (
             "mouse_chickadee",
             0,
-            1,
+            0,
             rois_list,
         ),
         skip_duplicates=True,

@@ -92,7 +92,13 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
     }
 
     for key in Masks:
-        Masks[key][0] = Masks[key][0]
+        sample = np.zeros_like(Masks[key][8])
+        sample[
+            Masks[key][1] : Masks[key][2] + 1,
+            Masks[key][3] : Masks[key][4] + 1,
+            Masks[key][5] : Masks[key][6] + 1,
+        ] = Mask[key][0]
+        Masks[key][0] = sample
 
     ids_key_view = 0
     for key in Masks:
@@ -147,6 +153,15 @@ def display_cropped_continuous_instance_labels(
         for table in query_reg
         if table["mouse_name"] == name
     }
+
+    for key in Masks:
+        sample = np.zeros_like(Masks[key][7])
+        sample[
+            Masks[key][1] : Masks[key][2] + 1,
+            Masks[key][3] : Masks[key][4] + 1,
+            Masks[key][5] : Masks[key][6] + 1,
+        ] = Mask[key][0]
+        Masks[key][0] = sample
 
     query_instance = (
         spim.Segmentation()

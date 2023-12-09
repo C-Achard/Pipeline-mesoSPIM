@@ -40,8 +40,7 @@ class Scan(dj.Manual):
     timestamp = CURRENT_TIMESTAMP: timestamp
     """
 
-    def get_shape(self):
-        path = (self & key).feth1("autofluo_path")
+    def get_shape(self, path):
         scan = imio.load_any(path)
         return scan.shape
 

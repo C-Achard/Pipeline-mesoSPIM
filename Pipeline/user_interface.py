@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 sys.path.append("scripts")
 sys.path.append("schema")
 
-
+"""
 try:
     login.connectToDatabase()
 except Exception as e:
@@ -26,8 +26,9 @@ except Exception as e:
         + "- Contact your network administrator."
     )
     st.stop()
+"""
 
-from schema import mice, spim, user
+# from schema import mice, spim, user
 
 from scripts import brainreg_config, determine_ids, brainreg_utils
 
@@ -448,9 +449,22 @@ def main():
         "Path to output directory for brain registration",
         value=Path("").resolve(),
     )
-    additional_files_paths = (
-        []
-    )  # used to list all additional files, asks to user to input all of them depending on the number of files
+
+    Brainreg_result_path = [brainreg_result_path] * len(mouse_names)
+    Voxel_size_x = {path: 5 for path in autofluo_paths}
+    Voxel_size_y = {path: 5.26 for path in autofluo_paths}
+    Voxel_size_z = {path: 5.26 for path in autofluo_paths}
+    Orientation_str = {path: "sar" for path in autofluo_paths}
+
+    if len(mouse_names) > 1:
+        st.sidebar.write("The following output directories will be used:")
+        for i, (path, name) in enumerate(
+            zip(Brainreg_result_path, mouse_names)
+        ):
+            st.sidebar.write(path + "_" + name)
+            Brainreg_result_path[i] = path + "_" + name
+
+    additional_files_paths = []
     atlas_name = st.selectbox(
         "atlas name",
         ["allen_mouse_50um", "allen_mouse_25um", "allen_mouse_10um"],
@@ -466,33 +480,6 @@ def main():
         )
     with col3:
         preprocessing_params = st.text_input("Preprocessing", value="default")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        voxel_size_x = st.number_input("Voxel size x", step=0.01, format="%f")
-    with col2:
-        voxel_size_y = st.number_input("Voxel size y", step=0.01, format="%f")
-    with col3:
-        voxel_size_z = st.number_input("Voxel size z", step=0.01, format="%f")
-
-    orientation_str = st.text_input("Orientation", value="sar")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        check_orient = st.checkbox("Check orientation", value=False)
-    with col2:
-        save_orientation = st.checkbox("Save orientation", value=False)
-    with col3:
-        sort_input_bool = st.checkbox("Sort input file", value=False)
-    with col4:
-        debug = st.checkbox("Debug", value=False)
-
-    if check_orient:
-        if len(autofluo_paths) > 1:
-            c = st.selectbox("Select the mouse", autofluo_paths)
-            check_orientation(orientation_str, brain_geom, atlas_name, c)
-        else:
-            check_orientation(
-                orientation_str, brain_geom, atlas_name, autofluo_paths[0]
-            )
 
     col1, col2 = st.columns(2)
     with col1:
@@ -543,6 +530,57 @@ def main():
         num_hist_bins = st.number_input(
             "Number histogram bins floating", value=128, step=1, format="%d"
         )
+
+    st.header("Technical parameters of the brain scan for the registration")
+
+    if mouse_names:
+        if len(mouse_names) > 1:
+            mm = st.selectbox(
+                "Select the mouse for the following parameters", autofluo_paths
+            )
+        else:
+            mm = autofluo_paths[0]
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        voxel_size_x = st.number_input(
+            "Voxel size x", value=5.00, step=0.01, format="%f"
+        )
+        if mouse_names:
+            Voxel_size_x[mm] = voxel_size_x
+    with col2:
+        voxel_size_y = st.number_input(
+            "Voxel size y", value=5.26, step=0.01, format="%f"
+        )
+        if mouse_names:
+            Voxel_size_y[mm] = voxel_size_y
+    with col3:
+        voxel_size_z = st.number_input(
+            "Voxel size z", value=5.26, step=0.01, format="%f"
+        )
+        if mouse_names:
+            Voxel_size_z[mm] = voxel_size_z
+    orientation_str = st.text_input("Orientation", value="sar")
+    if mouse_names:
+        Orientation_str[mm] = orientation_str
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        check_orient = st.checkbox("Check orientation", value=False)
+    with col2:
+        save_orientation = st.checkbox("Save orientation", value=False)
+    with col3:
+        sort_input_bool = st.checkbox("Sort input file", value=False)
+    with col4:
+        debug = st.checkbox("Debug", value=False)
+
+    if check_orient:
+        if len(autofluo_paths) > 1:
+            check_orientation(orientation_str, brain_geom, atlas_name, mm)
+        else:
+            check_orientation(
+                orientation_str, brain_geom, atlas_name, autofluo_paths[0]
+            )
 
     st.header("Parameters of the user")
     username = st.text_input("Name", value="cyril")
@@ -612,7 +650,7 @@ def main():
         ]
         rois_ids = df[df["acronym"].isin(list_acro)]["id"].values.tolist()
 
-    st.header("Determining the postprocessing parameters")
+    st.header("Post-processing parameters")
 
     threshold = st.number_input(
         "Threshold", value=0.65, step=0.01, format="%f"
@@ -632,13 +670,15 @@ def main():
 
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")
-
+        keys = [key for key in Voxel_size_x]
         for index, (
             mouse_name,
             mouse_id,
             date_of_mouse,
             mouse_sex,
             mouse_strain,
+            path,
+            brg_result_path,
         ) in enumerate(
             zip(
                 mouse_names,
@@ -646,6 +686,8 @@ def main():
                 date_of_mouses,
                 mouse_sexs,
                 mouse_strains,
+                keys,
+                Brainreg_result_path,
             )
         ):
             params = {
@@ -656,8 +698,12 @@ def main():
                 "atlas": atlas_name,
                 "n_free_cpus": cpus_number,
                 "brain_geometry": brain_geom,
-                "voxel_sizes": [voxel_size_x, voxel_size_y, voxel_size_z],
-                "orientation": orientation_str,
+                "voxel_sizes": [
+                    Voxel_size_x[path],
+                    Voxel_size_y[path],
+                    Voxel_size_z[path],
+                ],
+                "orientation": Orientation_str[path],
                 "preprocessing": preprocessing_params,
                 "sort_input_file": sort_input_bool,
                 "save_orientation": save_orientation,

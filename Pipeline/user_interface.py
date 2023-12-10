@@ -488,9 +488,7 @@ def main():
     if check_orient:
         if len(autofluo_paths) > 1:
             c = st.selectbox("Select the mouse", autofluo_paths)
-            check_orientation(
-                orientation_str, brain_geom, atlas_name, autofluo_paths[0]
-            )
+            check_orientation(orientation_str, brain_geom, atlas_name, c)
         else:
             check_orientation(
                 orientation_str, brain_geom, atlas_name, autofluo_paths[0]
@@ -634,32 +632,6 @@ def main():
 
     if st.sidebar.button("RUN PIPELINE"):
         st.sidebar.write("Starting pipeline")
-        params = {
-            "output_directory": str(Path(brainreg_result_path).resolve()),
-            "additional_images": additional_files_paths,
-            "atlas": atlas_name,
-            "n_free_cpus": cpus_number,
-            "brain_geometry": brain_geom,
-            "voxel_sizes": [voxel_size_x, voxel_size_y, voxel_size_z],
-            "orientation": orientation_str,
-            "preprocessing": preprocessing_params,
-            "sort_input_file": sort_input_bool,
-            "save_orientation": save_orientation,
-            "debug": debug,
-            "affine_n_steps": affine_downsampling_steps,
-            "affine_use_n_steps": affine_sampling_steps,
-            "freeform_n_steps": num_freeform_downsample,
-            "freeform_use_n_steps": number_freeform_downsample_to_use,
-            "bending_energy_weight": bending_energy_weight,
-            "grid_spacing": grid_spacing,
-            "smoothing_sigma_reference": smoothing_sigma_ref,
-            "smoothing_sigma_floating": smoothing_sigma_floating,
-            "histogram_n_bins_floating": num_hist_bins,
-            "histogram_n_bins_reference": num_hist_bins_ref,
-        }
-        attempt = 0
-        st.sidebar.write("Writing brainreg parameters into JSON file")
-        brainreg_config.write_json_file_brainreg(dictionary=params)
 
         for index, (
             mouse_name,
@@ -676,6 +648,33 @@ def main():
                 mouse_strains,
             )
         ):
+            params = {
+                "output_directory": str(Path(brainreg_result_path).resolve())
+                + "_"
+                + mouse_name,
+                "additional_images": additional_files_paths,
+                "atlas": atlas_name,
+                "n_free_cpus": cpus_number,
+                "brain_geometry": brain_geom,
+                "voxel_sizes": [voxel_size_x, voxel_size_y, voxel_size_z],
+                "orientation": orientation_str,
+                "preprocessing": preprocessing_params,
+                "sort_input_file": sort_input_bool,
+                "save_orientation": save_orientation,
+                "debug": debug,
+                "affine_n_steps": affine_downsampling_steps,
+                "affine_use_n_steps": affine_sampling_steps,
+                "freeform_n_steps": num_freeform_downsample,
+                "freeform_use_n_steps": number_freeform_downsample_to_use,
+                "bending_energy_weight": bending_energy_weight,
+                "grid_spacing": grid_spacing,
+                "smoothing_sigma_reference": smoothing_sigma_ref,
+                "smoothing_sigma_floating": smoothing_sigma_floating,
+                "histogram_n_bins_floating": num_hist_bins,
+                "histogram_n_bins_reference": num_hist_bins_ref,
+            }
+            brainreg_config.write_json_file_brainreg(dictionary=params)
+
             scan_attempt = fetch_attempt_scan(mouse_name, username)
             if not scan_attempt:
                 scan_attempt = 0

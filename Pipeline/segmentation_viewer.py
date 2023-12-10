@@ -71,20 +71,22 @@ def display_resized_atlas(
 
 
 def display_cropped_rois_instance_labels(name, scan_attempt, roi_ids, viewer):
+    shape = get_scan_shape(name, scan_attempt)
+
     for roi_id in roi_ids:
         display_cropped_roi_instance_labels(
-            name, scan_attempt, roi_ids, viewer
+            name, scan_attempt, roi_ids, shape, viewer
         )
 
 
-def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
-    shape = get_scan_shape(name, scan_attempt)
-
-    query_reg = (
+def display_cropped_roi_instance_labels(
+    name, scan_attempt, roi_id, shape, viewer
+):
+    query_roi = (
         spim.BrainRegistrationResults.BrainregROI()
         & f"scan_attempt='{scan_attempt}'"
     )
-    query_reg = query_reg.fetch(as_dict=True)
+    query_roi = query_reg.fetch(as_dict=True)
     Masks = {
         table["roi_id"]: [
             load_npz(table["mask"])
@@ -98,24 +100,13 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
             table["z_min"],
             table["z_max"],
             table["ids_key"],
-            shape,
         ]
-        for table in query_reg
+        for table in query_roi
         if table["mouse_name"] == name and table["roi_id"] == roi_id
     }
 
-    for key in Masks:
-        sample = np.zeros_like(Masks[key][8])
-        sample[
-            Masks[key][1] : Masks[key][2] + 1,
-            Masks[key][3] : Masks[key][4] + 1,
-            Masks[key][5] : Masks[key][6] + 1,
-        ] = Mask[key][0]
-        Masks[key][0] = sample
+    ids_key_view = Masks[roi_id][7]
 
-    ids_key_view = 0
-    for key in Masks:
-        ids_key_view = Masks[key][7]
     query_instance = (
         spim.Segmentation()
         & f"scan_attempt='{scan_attempt}'"
@@ -123,21 +114,51 @@ def display_cropped_roi_instance_labels(name, scan_attempt, roi_id, viewer):
     )
     query_instance = query_instance.fetch(as_dict=True)
     Instance_labels = {
-        table["cont_region_id"]: imio.load_any(table["instance_labels"])
+        table["cont_region_id"]: [imio.load_any(table["instance_labels"])]
         for table in query_instance
         if table["mouse_name"] == name
     }
 
-    for key in Masks:
-        sample = np.zeros_like(Masks[key][8])
-        sample[
-            Masks[key][1] : Masks[key][2] + 1,
-            Masks[key][3] : Masks[key][4] + 1,
-            Masks[key][5] : Masks[key][6] + 1,
-        ] = Instance_labels[key]
-        crop = np.where(Masks[key][0], sample, np.zeros_like(sample))
-        viewer.add_labels(crop, name="instance labels for ROI" + str(key))
-        break
+    query_reg = (
+        spim.BrainRegistrationResults.ContinuousRegion()
+        & f"scan_attempt='{scan_attempt}'"
+        & f"ids_key='{ids_key}'"
+    )
+    query_reg = query_reg.fetch(as_dict=True)
+    Coos = {
+        table["cont_region_id"]: [
+            table["x_min"],
+            table["x_max"],
+            table["y_min"],
+            table["y_max"],
+            table["z_min"],
+            table["z_max"],
+        ]
+        for table in query_reg
+        if table["mouse_name"] == name
+    }
+
+    sample = np.zeros(shape)
+    for key in Instance_labels:
+        if (
+            Masks[roi_id][1] >= Coos[key][0]
+            and Masks[roi_id][2] <= Coos[key][1]
+            and Masks[roi_id][3] >= Coos[key][2]
+            and Masks[roi_id][4] <= Coos[key][3]
+            and Masks[roi_id][5] >= Coos[key][4]
+            and Masks[roi_id][6] <= Coos[key][5]
+        ):
+            sample[
+                Coos[key][0] : Coos[key][1] + 1,
+                Coos[key][2] : Coos[key][3] + 1,
+                Coos[key][4] : Coos[key][5] + 1,
+            ] = Instance_labels[key]
+            sample[
+                Masks[roi_id][1] : Masks[roi_id][2] + 1,
+                Masks[roi_id][3] : Masks[roi_id][4] + 1,
+                Masks[roi_id][5] : Masks[roi_id][6] + 1,
+            ] *= Masks[roi_id][0]
+    viewer.add_labels(sample, name="instance labels for ROI" + str(roi_id))
 
 
 def display_cropped_continuous_instance_labels(
@@ -163,20 +184,10 @@ def display_cropped_continuous_instance_labels(
             table["y_max"],
             table["z_min"],
             table["z_max"],
-            shape,
         ]
         for table in query_reg
         if table["mouse_name"] == name
     }
-
-    for key in Masks:
-        sample = np.zeros_like(Masks[key][7])
-        sample[
-            Masks[key][1] : Masks[key][2] + 1,
-            Masks[key][3] : Masks[key][4] + 1,
-            Masks[key][5] : Masks[key][6] + 1,
-        ] = Mask[key][0]
-        Masks[key][0] = sample
 
     query_instance = (
         spim.Segmentation()
@@ -190,17 +201,16 @@ def display_cropped_continuous_instance_labels(
         if table["mouse_name"] == name
     }
 
+    sample = np.zeros_like(shape)
     for key in Masks:
-        sample = np.zeros_like(Masks[key][7])
         sample[
             Masks[key][1] : Masks[key][2] + 1,
             Masks[key][3] : Masks[key][4] + 1,
             Masks[key][5] : Masks[key][6] + 1,
-        ] = Instance_labels[key]
-        crop = np.where(Masks[key][0], sample, np.zeros_like(sample))
-        viewer.add_labels(
-            crop, name="instance labels for region n°" + str(key)
+        ] = (
+            Instance_labels[key] * Masks[key][0]
         )
+    viewer.add_labels(sample, name="instance labels for continuous regions")
 
 
 if __name__ == "__main__":

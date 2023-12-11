@@ -30,7 +30,7 @@ except Exception as e:
 
 # from schema import mice, spim, user
 
-from scripts import brainreg_config, determine_ids, brainreg_utils
+from scripts import brainreg_config, determine_ids, brainreg_utils, inference
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -155,7 +155,7 @@ def return_all_postprocess(mouse_name, username, scan_attempt):
     query = spim.PostProcessing() & f"scan_attempt='{scan_attempt}'"
     query = query.fetch(as_dict=True)
     list_postprocess = {
-        table["postprocess_key"]: PostProcessConfig(
+        table["postprocess_key"]: inference.PostProcessConfig(
             table["threshold"],
             table["spot_sigma"],
             table["outline_sigma"],
@@ -691,7 +691,9 @@ def main():
             )
         ):
             params = {
-                "output_directory": str(Path(brainreg_result_path).resolve())
+                "output_directory": str(
+                    Path(Brainreg_result_path[index]).resolve()
+                )
                 + "_"
                 + mouse_name,
                 "additional_images": additional_files_paths,
@@ -737,6 +739,14 @@ def main():
                     break
             list_postprocess = return_all_postprocess(
                 mouse_name, username, scan_attempt
+            )
+            postpro = inference.PostProcessConfig(
+                threshold,
+                spot_sigma,
+                outline_sigma,
+                None,
+                clear_small_object_size,
+                clear_large_objects_size,
             )
             attempt_postprocess = 0
             for key in list_postprocess:

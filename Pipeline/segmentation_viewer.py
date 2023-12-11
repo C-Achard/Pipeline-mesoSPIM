@@ -10,6 +10,7 @@ from scipy.sparse import load_npz
 sys.path.append("scripts")
 sys.path.append("schema")
 
+# Connection to DataJoint
 login.connectToDatabase()
 
 from schema import mice, spim, user
@@ -17,6 +18,15 @@ from scripts import brainreg_config, determine_ids, brainreg_utils
 
 
 def get_scan_shape(name, scan_attempt):
+    """Function to get the shape of the scan given a mouse name and a scan "attempt"
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+    Returns:
+        scan_shape: shape of the autofluorescence scan (= cFOS scan)
+    """
+
     query_shape = spim.Scan() & f"scan_attempt='{scan_attempt}'"
     query_shape = query_shape.fetch(as_dict=True)
     scan_shape = [
@@ -27,61 +37,17 @@ def get_scan_shape(name, scan_attempt):
     return scan_shape
 
 
-def display_resized_atlas(
-    name, scan_attempt, viewer, ids_key=0, add_crop=False
-):
-    query_scan = spim.Scan() & f"scan_attempt='{scan_attempt}'"
-    query_scan = query_scan.fetch(as_dict=True)
-    CFOS_shape = [
-        imio.load_any(table["cfos_path"]).shape
-        for table in query_scan
-        if table["mouse_name"] == name
-    ][0]
+def get_roi_masks_dict(name, scan_attempt, roi_id):
+    """Function to return a dictionnary of required variables from DataJoint to display a mask for a given ROI
 
-    query_reg = spim.BrainRegistration() & f"scan_attempt='{scan_attempt}'"
-    query_reg = query_reg.fetch(as_dict=True)
-    Atlas_downsized = [
-        imio.load_any(table["registration_path"] + "/registered_atlas.tiff")
-        for table in query_reg
-        if table["mouse_name"] == name
-    ][0]
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        roi_id (int): ROI id
+    Returns:
+        Masks (dict{roi_id: [mask, coordinates, ids_key]})
+    """
 
-    Atlas_resized = brainreg_utils.rescale_labels(Atlas_downsized, CFOS_shape)
-    viewer.add_labels(Atlas_resized, name="Atlas")
-    if add_crop:
-        query_ROIs = (
-            spim.ROIs()
-            & f"scan_attempt='{scan_attempt}'"
-            & f"ids_key='{ids_key}'"
-        )
-        query_ROIs = query_ROIs.fetch(as_dict=True)
-        if query_ROIs:
-            atlas_ids = [
-                table["regions_of_interest_ids"]
-                for table in query_ROIs
-                if table["mouse_name"] == name
-            ][0]
-            Atlas_downsized_rois = brainreg_utils.get_roi_labels(
-                atlas_ids, Atlas_downsized
-            )
-            Atlas_resized_rois = brainreg_utils.rescale_labels(
-                Atlas_downsized_rois, CFOS_shape
-            )
-            viewer.add_labels(Atlas_resized_rois, name="Atlas cropped to ROIs")
-
-
-def display_cropped_rois_instance_labels(name, scan_attempt, roi_ids, viewer):
-    shape = get_scan_shape(name, scan_attempt)
-
-    for roi_id in roi_ids:
-        display_cropped_roi_instance_labels(
-            name, scan_attempt, roi_ids, shape, viewer
-        )
-
-
-def display_cropped_roi_instance_labels(
-    name, scan_attempt, roi_id, shape, viewer
-):
     query_roi = (
         spim.BrainRegistrationResults.BrainregROI()
         & f"scan_attempt='{scan_attempt}'"
@@ -104,20 +70,80 @@ def display_cropped_roi_instance_labels(
         for table in query_roi
         if table["mouse_name"] == name and table["roi_id"] == roi_id
     }
+    return Masks
 
-    ids_key_view = Masks[roi_id][7]
+
+def get_cont_reg_masks_dict(name, scan_attempt, ids_key):
+    """Function to return a dictionnary of required variables from DataJoint to display maks of continous regions corresponding to a list of ROIs
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        ids_key (int): ROI id
+    Returns:
+        Masks (dict{cont_reg_id: [mask, coordinates]})
+    """
+
+    query_reg = (
+        spim.BrainRegistrationResults.ContinuousRegion()
+        & f"scan_attempt='{scan_attempt}'"
+        & f"ids_key='{ids_key}'"
+    )
+    query_reg = query_reg.fetch(as_dict=True)
+    Masks = {
+        table["cont_region_id"]: [
+            load_npz(table["mask"])
+            .toarray()
+            .astype("bool")
+            .reshape(table["mask_shape"]),
+            table["x_min"],
+            table["x_max"],
+            table["y_min"],
+            table["y_max"],
+            table["z_min"],
+            table["z_max"],
+        ]
+        for table in query_reg
+        if table["mouse_name"] == name
+    }
+    return Masks
+
+
+def get_instance_labels_dict(name, scan_attempt, ids_key):
+    """Function to return a dictionnary of required variables from DataJoint to display the instance labels of continous regions corresponding to a list of ROIs
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        ids_key (int): ROI id
+    Returns:
+        Instance_labels (dict{cont_reg_id: instance labels})
+    """
 
     query_instance = (
         spim.Segmentation()
         & f"scan_attempt='{scan_attempt}'"
-        & f"ids_key='{ids_key_view}'"
+        & f"ids_key='{ids_key}'"
     )
     query_instance = query_instance.fetch(as_dict=True)
     Instance_labels = {
-        table["cont_region_id"]: [imio.load_any(table["instance_labels"])]
+        table["cont_region_id"]: imio.load_any(table["instance_labels"])
         for table in query_instance
         if table["mouse_name"] == name
     }
+    return Instance_labels
+
+
+def get_coordinates_instance_labels_dict(name, scan_attempt, ids_key):
+    """Function to return a dictionnary of required variables from DataJoint to display the coordinates of continuous regions corresponding to a given list of ROIs
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        ids_key (int): ROI id
+    Returns:
+        Coos (dict{cont_reg_id: coordinates})
+    """
 
     query_reg = (
         spim.BrainRegistrationResults.ContinuousRegion()
@@ -137,8 +163,71 @@ def display_cropped_roi_instance_labels(
         for table in query_reg
         if table["mouse_name"] == name
     }
+    return Coos
 
-    sample = np.zeros(shape)
+
+def display_resized_atlas(name, scan_attempt, viewer):
+    """Function to display registered atlas in the sample space on napari
+
+    Args:
+        name (string): name of the mouse
+        scan_attempt (int): "id" (unique number) of the pipeline run
+        viewer: napari window
+    """
+    # Get the shape of the scan
+    shape = get_scan_shape(name, scan_attempt)
+    query_reg = spim.BrainRegistration() & f"scan_attempt='{scan_attempt}'"
+    query_reg = query_reg.fetch(as_dict=True)
+    Atlas_downsized = [
+        imio.load_any(table["registration_path"] + "/registered_atlas.tiff")
+        for table in query_reg
+        if table["mouse_name"] == name
+    ][0]
+    # rescale the downsampled atlas to the cFOS/sample shape
+    Atlas_resized = brainreg_utils.rescale_labels(Atlas_downsized, CFOS_shape)
+    # Display on napari
+    viewer.add_labels(Atlas_resized, name="Atlas")
+
+
+def display_cropped_rois_instance_labels(name, scan_attempt, roi_ids, viewer):
+    """Function to display instance labels cropped to the given list of ROIs ids
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        roi_ids (list[int]): list of ROIs ids
+        viewer: napari window
+    """
+    shape = get_scan_shape(name, scan_attempt)
+
+    for roi_id in roi_ids:
+        display_cropped_roi_instance_labels(
+            name, scan_attempt, roi_ids, shape, viewer
+        )
+
+
+def display_cropped_roi_instance_labels(
+    name, scan_attempt, roi_id, shape, viewer
+):
+    """Function to display instance labels cropped to a single ROI id
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        roi_id (int): ROI id
+        shape: shape of the scan
+        viewer: napari window
+    """
+
+    Masks = get_roi_masks_dict(name, scan_attempt, roi_id)
+    Instance_labels = get_instance_labels_dict(
+        name, scan_attempt, Masks[roi_id][7]
+    )
+    Coos = get_coordinates_instance_labels_dict(
+        name, scan_attempt, Masks[roi_id][7]
+    )
+
+    sample = np.zeros(shape, dtype=np.uint16)
     for key in Instance_labels:
         if (
             Masks[roi_id][1] >= Coos[key][0]
@@ -164,44 +253,20 @@ def display_cropped_roi_instance_labels(
 def display_cropped_continuous_instance_labels(
     name, scan_attempt, ids_key, viewer
 ):
+    """Function to display instance labels cropped to a single ROI id
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        ids_key (int): id of the list of the ROIs
+        shape: shape of the scan
+        viewer: napari window
+    """
     shape = get_scan_shape(name, scan_attempt)
+    Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
+    Instance_labels = get_instance_labels_dict(name, scan_attempt, ids_key)
 
-    query_reg = (
-        spim.BrainRegistrationResults.ContinuousRegion()
-        & f"scan_attempt='{scan_attempt}'"
-        & f"ids_key='{ids_key}'"
-    )
-    query_reg = query_reg.fetch(as_dict=True)
-    Masks = {
-        table["cont_region_id"]: [
-            load_npz(table["mask"])
-            .toarray()
-            .astype("bool")
-            .reshape(table["mask_shape"]),
-            table["x_min"],
-            table["x_max"],
-            table["y_min"],
-            table["y_max"],
-            table["z_min"],
-            table["z_max"],
-        ]
-        for table in query_reg
-        if table["mouse_name"] == name
-    }
-
-    query_instance = (
-        spim.Segmentation()
-        & f"scan_attempt='{scan_attempt}'"
-        & f"ids_key='{ids_key}'"
-    )
-    query_instance = query_instance.fetch(as_dict=True)
-    Instance_labels = {
-        table["cont_region_id"]: imio.load_any(table["instance_labels"])
-        for table in query_instance
-        if table["mouse_name"] == name
-    }
-
-    sample = np.zeros_like(shape)
+    sample = np.zeros(shape, dtype=np.uint16)
     for key in Masks:
         sample[
             Masks[key][1] : Masks[key][2] + 1,
@@ -217,4 +282,4 @@ if __name__ == "__main__":
     login.connectToDatabase()
     viewer = napari.Viewer()
     display_cropped_continuous_instance_labels("mouse_chickadee", 0, 0, viewer)
-    display_resized_atlas("mouse_chickadee", 0, viewer, 0, add_crop=True)
+    display_resized_atlas("mouse_chickadee", 0, viewer)

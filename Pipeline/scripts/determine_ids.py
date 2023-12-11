@@ -11,10 +11,10 @@ def select_areas_containing_specified_name(dataframe, bg_atlas, global_name):
 
     Args:
         dataframe (pandas.Dataframe): atlas dataframe containing all ROIs.
+        bg_atlas: Brainglobe atlas
         global_name (string): name of the global area.
     Returns:
-        rslt_df_2 (pandas.Dataframe): new dataframe containing only ROIs corresponding to
-        given global area.
+        descendants_list (List): list of ROI names corresponding to given keyword.
     """
     rslt_df_1 = dataframe.loc[
         dataframe["name"].str.contains(global_name.lower())

@@ -25,16 +25,12 @@ class Coordinates:
 
 class BrainRegions:
     def __init__(self, registred_atlas_path, CFOS_path, roi_ids):
-        """Class storing all the required components necessary to run segmentaion on selected brain regions
-        CFOS (nump_array): CFOS image
-        Atlas_rois (numpy_array): upscaled registred atlas image with ROIs
-        Atlas_regions (numpy_array): upscaled registred atlas image with continuous regions
-        num_regions (int): number of continuous regions
-        coordinates_rois (dict{roi_id : coordinates}): dictionnary of cropping coordinates of ROIs
-        coordinates_regions (dict{roi_id : coordinates}): dictionnary of cropping coordinates of cont. regions
+        """Class storing all the required components necessary to run segmentaion on selected brain regions:
+        cFOS_shape: shape of the sample
+        ROI_Masks (dict{roi_id : [sparse matrix, shape of sparse matrix, Coordinates]}): dictionnary of masks for different ROIs with shape and coordinates
+        Cont_Masks (dict{roi_id : [sparse matrix, shape of sparse matrix, Coordinates]}): dictionnary of masks for different continuous regions with shape and coordinates
         """
-        CFOS = imio.load_any(CFOS_path)
-        self.cFOS_shape = CFOS.shape
+        self.cFOS_shape = imio.load_any(CFOS_path).shape
         del CFOS
         self.ROI_Masks = self.compute_rois(
             registred_atlas_path, roi_ids, self.cFOS_shape
@@ -49,9 +45,9 @@ class BrainRegions:
         Args:
             registred_atlas_path (string): path to .tiff atlas file obtained though the brain registration
             rois_ids (list[int]): list of user defined regions of interest labeled on the registred atlas
-            CFOS_shape (numpy_array(int)): shape of CFOS image for the rescaling of atlas
+            CFOS_shape: shape of CFOS image for the rescaling of atlas
         Returns:
-            rAtlas_rois (numpy_array(int)): upscaled registred atlas image with ROIs
+            Masks (dict{roi_id : [sparse matrix, shape of sparse matrix, coordinates]})): dictionnary of masks for different ROIs with shape and coordinates
         """
         whole_brain = len(roi_ids) > 510
         # Load the atlas
@@ -92,12 +88,11 @@ class BrainRegions:
         Args:
             registred_atlas_path (string): path to .tiff atlas file obtained though the brain registration
             rois_ids (list[int]): list of user defined regions of interest labeled on the registred atlas
-            CFOS_shape (numpy_array(int)): shape of CFOS image for the rescaling of atlas
+            CFOS_shape: shape of CFOS image for the rescaling of atlas
         Returns:
-            rAtlas_regions (numpy_array(int)): upscaled registred atlas image with continuous regions
-            num_regions (int): number of continuous regions
+            Cont_Masks (dict{roi_id : [sparse matrix, shape of sparse matrix, coordinates]}): dictionnary of masks for different continuous regions with shape and coordinates
         """
-        whole_brain = len(roi_ids) > 830
+        whole_brain = len(roi_ids) > 510
         # Load the atlas
         rAtlas = imio.load_any(registred_atlas_path)
         # Select only regions of interest
@@ -108,7 +103,7 @@ class BrainRegions:
             rAtlas[rAtlas != 0] = 1
             # Determinate continuous regions with label from skimage.measure
             rAtlas_regions, num_regions = label(rAtlas, return_num=True)
-            # Rescale atlas to the shape of yur CFOS image
+            # Rescale atlas to the shape of your CFOS image
             print("Rescaling labels")
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
@@ -131,8 +126,11 @@ class BrainRegions:
             del rAtlas_regions
             return Masks
         else:
+            # Put the id of every selected region to 1, to extract whole brain mask
             rAtlas[rAtlas != 0] = 1
+            # Only one continuous region (whole brain)
             num_regions = 1
+            # Rescale atlas to the shape of your CFOS image
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
             )
@@ -155,6 +153,12 @@ class BrainRegions:
             return Masks
 
     def compute_coordinates(self, mask):
+        """Compute coordinates (xmin, xmax, ymin, ymax, zmin, zmax) of the bounding box of the given mask
+        Args:
+            mask (numpy.arrax(bool)): mask of a given ROI or continuous regions
+        Returns:
+            coos (Coordinates): coordinates of the bouding box
+        """
         inds = np.where(mask)
         # Finds mins and maxs to get the cropping coordinates
         mins = np.min(inds, axis=1)

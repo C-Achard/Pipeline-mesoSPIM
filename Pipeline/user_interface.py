@@ -7,6 +7,9 @@ import login
 import imio
 from bg_atlasapi import BrainGlobeAtlas
 from skimage.transform import resize
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
+from typing import List
 import bg_space as bg
 import matplotlib.pyplot as plt
 
@@ -30,10 +33,23 @@ except Exception as e:
 
 # from schema import mice, spim, user
 
-from scripts import brainreg_config, determine_ids, brainreg_utils, inference
+from scripts import brainreg_config, determine_ids, brainreg_utils
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@dataclass_json
+@dataclass
+class PostProcessConfig:
+    """Config for post-processing."""
+
+    threshold: float = 0.65
+    spot_sigma: float = 0.7
+    outline_sigma: float = 0.7
+    anisotropy_correction: List[float] = None
+    clear_small_size: int = 5
+    clear_large_objects: int = 500
 
 
 def check_orientation(
@@ -155,7 +171,7 @@ def return_all_postprocess(mouse_name, username, scan_attempt):
     query = spim.PostProcessing() & f"scan_attempt='{scan_attempt}'"
     query = query.fetch(as_dict=True)
     list_postprocess = {
-        table["postprocess_key"]: inference.PostProcessConfig(
+        table["postprocess_key"]: PostProcessConfig(
             table["threshold"],
             table["spot_sigma"],
             table["outline_sigma"],
@@ -456,13 +472,20 @@ def main():
     Voxel_size_z = {path: 5.26 for path in autofluo_paths}
     Orientation_str = {path: "sar" for path in autofluo_paths}
 
-    if len(mouse_names) > 1:
-        st.sidebar.write("The following output directories will be used:")
-        for i, (path, name) in enumerate(
-            zip(Brainreg_result_path, mouse_names)
-        ):
-            st.sidebar.write(path + "_" + name)
-            Brainreg_result_path[i] = path + "_" + name
+    if mouse_names:
+        if len(mouse_names) > 1:
+            st.sidebar.write("The following output directories will be used:")
+            for i, (path, name) in enumerate(
+                zip(Brainreg_result_path, mouse_names)
+            ):
+                st.sidebar.write(path + "_" + name)
+                Brainreg_result_path[i] = path + "_" + name
+        else:
+            st.sidebar.write("The following output directory will be used:")
+            for i, (path, name) in enumerate(
+                zip(Brainreg_result_path, mouse_names)
+            ):
+                st.sidebar.write(path)
 
     additional_files_paths = []
     atlas_name = st.selectbox(
@@ -669,6 +692,9 @@ def main():
     )
 
     if st.sidebar.button("RUN PIPELINE"):
+        if not mouse_names:
+            st.sidebar.error("No variable given as input")
+            st.stop()
         st.sidebar.write("Starting pipeline")
         keys = [key for key in Voxel_size_x]
         for index, (
@@ -740,7 +766,7 @@ def main():
             list_postprocess = return_all_postprocess(
                 mouse_name, username, scan_attempt
             )
-            postpro = inference.PostProcessConfig(
+            postpro = PostProcessConfig(
                 threshold,
                 spot_sigma,
                 outline_sigma,

@@ -159,7 +159,7 @@ def return_all_postprocess(mouse_name, username, scan_attempt):
             table["threshold"],
             table["spot_sigma"],
             table["outline_sigma"],
-            table["anisotropy_correction"],
+            None,
             table["clear_small_size"],
             table["clear_large_objects"],
         )

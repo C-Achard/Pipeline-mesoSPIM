@@ -52,9 +52,11 @@ class PostProcessConfig:
     outline_sigma: float = 0.7
     isotropic_spot_sigma: float = 0.2
     isotropic_outline_sigma: float = 0.2
-    anisotropy_correction: List[
-        float
-    ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
+    anisotropy_correction: List[float] = [
+        1,
+        1,
+        1,
+    ]  # TODO change to actual values, should be a ratio like [1,1/5,1]
     clear_small_size: int = 5
     clear_large_objects: int = 500
 
@@ -137,7 +139,7 @@ def post_processing(
         "labels": labels,
         "stats": stats_not_resized,
     }
-    if config.anisotropy_correction is not None:
+    if not config.anisotropy_correction == [1, 1, 1]:
         logger.info("Resizing image to correct anisotropy")
         image = resize(image, config.anisotropy_correction)
         logger.debug(f"Resized image shape: {image.shape}")
@@ -161,6 +163,11 @@ def post_processing(
         result_dict["Resized"] = {
             "labels": labels_resized,
             "stats": stats_resized,
+        }
+    else:
+        result_dict["Resized"] = {
+            "labels": labels,
+            "stats": stats_not_resized,
         }
     return result_dict
 

@@ -64,6 +64,9 @@ class PostProcessing(dj.Manual):
     threshold = 0.65: double
     spot_sigma = 0.7: double
     outline_sigma = 0.7: double
+    isotropic_spot_sigma = 0.2: double
+    isotropic_outline_sigma = 0.2: double
+    anisotropy_correction = [1,1,1]: longblob
     clear_small_size = 5: int
     clear_large_objects = 500: int
     """
@@ -73,7 +76,7 @@ class PostProcessing(dj.Manual):
             (self & key).fetch1("threshold"),
             (self & key).fetch1("spot_sigma"),
             (self & key).fetch1("outline_sigma"),
-            None,
+            (self & key).fetch1("anisotropy_correction"),
             (self & key).fetch1("clear_small_size"),
             (self & key).fetch1("clear_large_objects"),
         )
@@ -225,7 +228,7 @@ class BrainRegistrationResults(dj.Computed):
 
 
 @schema
-class Segmentation(dj.Computed):
+class SemanticSegmentation(dj.Computed):
     """Semantic and Instance image segmentation"""
 
     definition = """  # semantic image segmentation
@@ -233,9 +236,6 @@ class Segmentation(dj.Computed):
     -> PostProcessing
     ---
     semantic_labels: varchar(200)
-    instance_labels: varchar(200)
-    stats: varchar(200)
-    stats_resized: varchar(200)
     """
 
     def make(self, key):  # from ROI in brainreg
@@ -271,18 +271,8 @@ class Segmentation(dj.Computed):
             reg_z_min : reg_z_max + 1,
         ]
         results = inference.inference_on_images(reg_cfos)
-        post_process = inference.post_processing(
-            results, (PostProcessing() & key).get_postprocessing_config(key)
-        )
-
         infer = results[0]
         reg_semantic_labels = infer.semantic_segmentation
-        reg_stats = post_process["Not resized"]["stats"]
-        reg_stats_resized = post_process["Resized"]["stats"]
-        reg_instance_labels = post_process["Not resized"]["labels"]
-
-        df = pd.DataFrame(reg_stats.get_dict())
-        df_resized = pd.DataFrame(reg_stats_resized.get_dict())
 
         parent_path = (BrainRegistration() & key).fetch1("registration_path")
         result_path = parent_path / Path("inference_results")
@@ -298,6 +288,67 @@ class Segmentation(dj.Computed):
             + ".tiff"
         )
         imio.to_tiff(reg_semantic_labels, result_path_reg)
+
+        key["semantic_labels"] = result_path_reg
+        self.insert1(key)
+
+
+@schema
+class InstanceSegmentation(dj.Computed):
+    """Semantic and Instance image segmentation"""
+
+    definition = """  # semantic image segmentation
+    -> SemanticSegmentation
+    -> PostProcessing
+    ---
+    instance_labels: varchar(200)
+    stats: varchar(200)
+    stats_resized: varchar(200)
+    """
+
+    def make(self, key):  # from ROI in brainreg
+        """Runs cellseg3d on the cFOS scan."""
+        sem_path = (SemanticSegmentation() & key).fetch1("semantic_labels")
+        semantic_labels = imio.load_any(sem_path)
+        att = (ROIs() & key).fetch1("ids_key")
+        mouse_name = (mice.Mouse() & key).fetch1("mouse_name")
+        reg_x_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "x_min"
+        )
+        reg_x_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "x_max"
+        )
+        reg_y_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "y_min"
+        )
+        reg_y_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "y_max"
+        )
+        reg_z_min = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "z_min"
+        )
+        reg_z_max = (BrainRegistrationResults.ContinuousRegion() & key).fetch1(
+            "z_max"
+        )
+        cont_region_id = (
+            BrainRegistrationResults.ContinuousRegion() & key
+        ).fetch1("cont_region_id")
+
+        post_process = inference.post_processing(
+            semantic_labels,
+            (PostProcessing() & key).get_postprocessing_config(key),
+        )
+        reg_stats = post_process["Not resized"]["stats"]
+        reg_stats_resized = post_process["Resized"]["stats"]
+        reg_instance_labels = post_process["Not resized"]["labels"]
+
+        df = pd.DataFrame(reg_stats.get_dict())
+        df_resized = pd.DataFrame(reg_stats_resized.get_dict())
+
+        parent_path = (BrainRegistration() & key).fetch1("registration_path")
+        result_path = parent_path / Path("inference_results")
+        if not Path(result_path).is_dir():
+            result_path.mkdir()
 
         result_path_reg_instance = result_path / Path(
             mouse_name
@@ -329,7 +380,6 @@ class Segmentation(dj.Computed):
         )
         df_resized.to_csv(result_path_reg_stats_resized)
 
-        key["semantic_labels"] = result_path_reg
         key["instance_labels"] = result_path_reg_instance
         key["stats"] = result_path_reg_stats
         key["stats_resized"] = result_path_reg_stats_resized
@@ -341,7 +391,7 @@ class Analysis(dj.Computed):
     """Analysis of the instance segmentation."""
 
     definition = """
-    -> Segmentation
+    -> InstanceSegmentation
     ---
     cell_counts : int
     filled_pixels: int

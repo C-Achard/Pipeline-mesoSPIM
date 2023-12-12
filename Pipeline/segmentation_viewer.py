@@ -208,7 +208,7 @@ def display_cfos_scan(name, scan_attempt, viewer):
     ][0]
     # rescale the downsampled atlas to the cFOS/sample shape
     # Display on napari
-    viewer.add_labels(cfos, name="cFOS scan")
+    viewer.add_image(cfos, name="cFOS scan")
 
 
 def display_cropped_rois_instance_labels(name, scan_attempt, roi_ids, viewer):

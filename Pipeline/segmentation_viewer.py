@@ -343,8 +343,8 @@ def display_cfos_bounding_box(name, scan_attempt, ids_key, viewer):
             Masks[key][5] : Masks[key][6] + 1,
         ]
         sample = cfos_cropped * Masks[key][0]
-        viewer.add_labels(
-            sample, name="instance labels for continuous regions"
+        viewer.add_image(
+            sample, name="CFOS cropped to bounding box of continuous region"
         )
 
 

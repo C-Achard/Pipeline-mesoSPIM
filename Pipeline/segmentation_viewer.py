@@ -334,6 +334,9 @@ def display_cfos_bounding_box(name, scan_attempt, ids_key, viewer):
         for table in query_reg
         if table["mouse_name"] == name
     ][0]
+
+    cfos = resize(cfos, [1, 1 / 5, 1])
+
     Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
 
     for key in Masks:

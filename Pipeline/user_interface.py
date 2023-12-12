@@ -809,7 +809,7 @@ def main():
             mouse_user = user.User()
             mouse_user.insert1((username, useremail), skip_duplicates=True)
 
-            st.sidebar.write("Populating Scan table of " + scan_name)
+            st.sidebar.write("Populating Scan table of " + mouse_name)
             scan = spim.Scan()
 
             cfos_path = Path(cfos_scan_path)

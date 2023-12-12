@@ -117,7 +117,7 @@ def get_instance_labels_dict(name, scan_attempt, ids_key):
     Args:
         name (string): name of the mouse
         scan attempt (int): "id" (unique number) of the pipeline run
-        ids_key (int): ROI id
+        ids_key (int): ROI "id"
     Returns:
         Instance_labels (dict{cont_reg_id: instance labels})
     """

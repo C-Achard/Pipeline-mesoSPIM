@@ -95,7 +95,7 @@ def inference_on_images(
 def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
     """Run post-processing on inference results."""
     if config.anisotropy_correction is None:
-        config.anisotropy_correction = [1, 1, 1]
+        config.anisotropy_correction = [1, 1, 1 / 5]
 
     for result in results:
         image = result.semantic_segmentation

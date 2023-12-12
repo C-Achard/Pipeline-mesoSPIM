@@ -454,7 +454,7 @@ class Report(dj.Computed):
         email = (user.User() & key).fetch1("email")
         username = (user.User() & key).fetch1("name")
         stats = (Analysis() & key).get_stats_summary(key)
-        labels_path = (Segmentation() & key).fetch1("instance_labels")
+        labels_path = (InstanceSegmentation() & key).fetch1("instance_labels")
         labels = imio.load_any(labels_path)
 
         parent_path = (BrainRegistration() & key).fetch1("registration_path")

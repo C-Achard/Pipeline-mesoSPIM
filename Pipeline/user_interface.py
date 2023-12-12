@@ -673,9 +673,9 @@ def main():
             df["name"] = df["name"].str.lower()
             filtered_df = df[df["id"].isin(rois_ids)]
             st.write("The following areas have been selected")
-            st.dataframe(filtered_df)
+            st.dataframe(df)
     if rois_choice == "Select the whole brain":
-        bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
+        bg_atlas = BrainGlobeAtlas(atlas_name)
         df = bg_atlas.lookup_df
         list_acro = [
             acronym

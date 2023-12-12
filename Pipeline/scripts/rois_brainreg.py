@@ -31,7 +31,6 @@ class BrainRegions:
         Cont_Masks (dict{roi_id : [sparse matrix, shape of sparse matrix, Coordinates]}): dictionnary of masks for different continuous regions with shape and coordinates
         """
         self.cFOS_shape = imio.load_any(CFOS_path).shape
-        del CFOS
         self.ROI_Masks = self.compute_rois(
             registred_atlas_path, roi_ids, self.cFOS_shape
         )

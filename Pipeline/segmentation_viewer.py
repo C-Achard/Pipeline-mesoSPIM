@@ -167,7 +167,7 @@ def get_coordinates_instance_labels_dict(name, scan_attempt, ids_key):
 
 
 def display_resized_atlas(name, scan_attempt, viewer):
-    """Function to display registered atlas in the sample space on napari
+    """Function to display the registered atlas in the sample space on napari
 
     Args:
         name (string): name of the mouse
@@ -187,6 +187,28 @@ def display_resized_atlas(name, scan_attempt, viewer):
     Atlas_resized = brainreg_utils.rescale_labels(Atlas_downsized, CFOS_shape)
     # Display on napari
     viewer.add_labels(Atlas_resized, name="Atlas")
+
+
+def display_cfos_scan(name, scan_attempt, viewer):
+    """Function to display the cFOS scan in the sample space on napari
+
+    Args:
+        name (string): name of the mouse
+        scan_attempt (int): "id" (unique number) of the pipeline run
+        viewer: napari window
+    """
+    # Get the shape of the scan
+    shape = get_scan_shape(name, scan_attempt)
+    query_reg = spim.Scan() & f"scan_attempt='{scan_attempt}'"
+    query_reg = query_reg.fetch(as_dict=True)
+    cfos = [
+        imio.load_any(table["cfos_path"])
+        for table in query_reg
+        if table["mouse_name"] == name
+    ][0]
+    # rescale the downsampled atlas to the cFOS/sample shape
+    # Display on napari
+    viewer.add_labels(cfos, name="cFOS scan")
 
 
 def display_cropped_rois_instance_labels(name, scan_attempt, roi_ids, viewer):

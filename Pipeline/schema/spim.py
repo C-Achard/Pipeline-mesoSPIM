@@ -404,9 +404,9 @@ class Analysis(dj.Computed):
     def make(self, key):
         """Runs analysis on the instance segmentation."""
 
-        labels_path = (Segmentation() & key).fetch1("instance_labels")
+        labels_path = (InstanceSegmentation() & key).fetch1("instance_labels")
         labels = imio.load_any(labels_path)
-        stats_path = (Segmentation() & key).fetch1("stats")
+        stats_path = (InstanceSegmentation() & key).fetch1("stats")
         stats = pd.read_csv(stats_path)
 
         key["cell_counts"] = np.unique(labels.flatten()).size - 1

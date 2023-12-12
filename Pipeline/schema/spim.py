@@ -164,7 +164,13 @@ class BrainRegistrationResults(dj.Computed):
         for k, value in brain_regions.Cont_Masks.items():
             if not (
                 parent_path
-                / Path("mask_cont_reg_" + str(k) + "_ids_key_" + str(id_key))
+                / Path(
+                    "mask_cont_reg_"
+                    + str(k)
+                    + "_ids_key_"
+                    + str(id_key)
+                    + ".npz"
+                )
             ).is_file():
                 save_npz(
                     parent_path
@@ -174,14 +180,23 @@ class BrainRegistrationResults(dj.Computed):
                     value[0],
                 )
         for k, value in brain_regions.ROI_Masks.items():
-            if not (parent_path / Path("mask_roi_" + str(k))).is_file():
+            if not (
+                parent_path / Path("mask_roi_" + str(k) + ".npz")
+            ).is_file():
                 save_npz(parent_path / Path("mask_roi_" + str(k)), value[0])
         self.insert1(key)
         BrainRegistrationResults.ContinuousRegion.insert(
             dict(
                 key,
                 cont_region_id=num,
-                mask=parent_path / Path("mask_cont_reg_" + str(num) + ".npz"),
+                mask=parent_path
+                / Path(
+                    "mask_cont_reg_"
+                    + str(num)
+                    + "_ids_key_"
+                    + str(id_key)
+                    + ".npz"
+                ),
                 mask_shape=brain_regions.Cont_Masks[num][1],
                 x_min=brain_regions.Cont_Masks[num][2].xmin,
                 x_max=brain_regions.Cont_Masks[num][2].xmax,

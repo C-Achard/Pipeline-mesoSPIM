@@ -233,7 +233,6 @@ class SemanticSegmentation(dj.Computed):
 
     definition = """  # semantic image segmentation
     -> BrainRegistrationResults.ContinuousRegion
-    -> PostProcessing
     ---
     semantic_labels: varchar(200)
     """
@@ -295,7 +294,7 @@ class SemanticSegmentation(dj.Computed):
 
 @schema
 class InstanceSegmentation(dj.Computed):
-    """Semantic and Instance image segmentation"""
+    """Instance image segmentation"""
 
     definition = """  # semantic image segmentation
     -> SemanticSegmentation

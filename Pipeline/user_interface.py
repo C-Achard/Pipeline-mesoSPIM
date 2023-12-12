@@ -220,15 +220,13 @@ def main():
             "Autofluo scan path",
             value=Path(
                 "/data/seb/CFOS_exp/CHICKADEE_Mag1.25x_Tile0_Ch488_Sh0_Rot0.tiff"
-            ).resolve()
-            / Path("autofluo.tiff"),
+            ).resolve(),
         )
         cfos_scan_path = st.text_input(
             "cFOS scan path",
             value=Path(
                 "/data/seb/CFOS_exp/CHICKADEE_Mag1.25x_Tile0_Ch561_Sh0_Rot0.tiff"
-            ).resolve()
-            / Path("cfos.tiff"),
+            ).resolve(),
         )
         tr_mouse_names.append("CHICKADEE")
         tr_mouse_ids.append(0)

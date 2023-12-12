@@ -668,7 +668,7 @@ def main():
             atlas_name=atlas_name, list_global_names=gn
         )
         if rois_ids:
-            bg_atlas = BrainGlobeAtlas(atlas_namess)
+            bg_atlas = BrainGlobeAtlas(atlas_name)
             df = bg_atlas.lookup_df
             df["name"] = df["name"].str.lower()
             filtered_df = df[df["id"].isin(rois_ids)]

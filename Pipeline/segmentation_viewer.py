@@ -247,7 +247,6 @@ def display_cropped_roi_instance_labels(
         name, scan_attempt, Masks[roi_id][7]
     )
 
-    sample = np.zeros(shape, dtype=np.uint16)
     for key in Instance_labels:
         if (
             Masks[roi_id][1] >= Coos[key][0]
@@ -257,17 +256,25 @@ def display_cropped_roi_instance_labels(
             and Masks[roi_id][5] >= Coos[key][4]
             and Masks[roi_id][6] <= Coos[key][5]
         ):
+            sample = np.zeros(shape, dtype=np.uint16)
+            sample_mask = np.zeros(shape, dtype=np.uint16)
             sample[
                 Coos[key][0] : Coos[key][1] + 1,
                 Coos[key][2] : Coos[key][3] + 1,
                 Coos[key][4] : Coos[key][5] + 1,
             ] = Instance_labels[key]
-            sample[
+            sample_mask[
                 Masks[roi_id][1] : Masks[roi_id][2] + 1,
                 Masks[roi_id][3] : Masks[roi_id][4] + 1,
                 Masks[roi_id][5] : Masks[roi_id][6] + 1,
-            ] *= Masks[roi_id][0]
-    viewer.add_labels(sample, name="instance labels for ROI" + str(roi_id))
+            ] = Masks[roi_id][0]
+            crop = np.where(sample_mask, sample, np.zeros_like(sample))
+            del sample
+            del sample_mask
+            viewer.add_labels(
+                crop, name="instance labels for ROI" + str(roi_id)
+            )
+            break
 
 
 def display_cropped_continuous_instance_labels(
@@ -300,7 +307,7 @@ def display_cropped_continuous_instance_labels(
 def display_cropped_continuous_instance_labels_bounding_box(
     name, scan_attempt, ids_key, viewer
 ):
-    """Function to display instance labels cropped to a continuous region (bounding box)
+    """Function to display instance labels cropped to a continuous region in a given bounding box
 
     Args:
         name (string): name of the mouse
@@ -318,8 +325,82 @@ def display_cropped_continuous_instance_labels_bounding_box(
         )
 
 
+def display_cropped_rois_instance_labels_bounding_box(
+    name, scan_attempt, roi_ids, viewer
+):
+    """Function to display instance labels cropped to a list of ROIs in a given bounding box
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        roi_ids (list[int]): list of ROI ids
+        viewer: napari window
+    """
+
+    for roi_id in roi_ids:
+        display_cropped_roi_instance_labels_bounding_box(
+            name, scan_attempt, roi_id, viewer
+        )
+
+
+def display_cropped_roi_instance_labels_bounding_box(
+    name, scan_attempt, roi_id, viewer
+):
+    """Function to display instance labels cropped to a single ROI in a given bounding box
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        roi_id (int): ROI id
+        viewer: napari window
+    """
+
+    Masks = get_roi_masks_dict(name, scan_attempt, roi_id)
+    Instance_labels = get_instance_labels_dict(
+        name, scan_attempt, Masks[roi_id][7]
+    )
+    Coos = get_coordinates_instance_labels_dict(
+        name, scan_attempt, Masks[roi_id][7]
+    )
+
+    for key in Instance_labels:
+        if (
+            Masks[roi_id][1] >= Coos[key][0]
+            and Masks[roi_id][2] <= Coos[key][1]
+            and Masks[roi_id][3] >= Coos[key][2]
+            and Masks[roi_id][4] <= Coos[key][3]
+            and Masks[roi_id][5] >= Coos[key][4]
+            and Masks[roi_id][6] <= Coos[key][5]
+        ):
+            sample_mask = np.zeros_like(Instance_labels[key])
+            sample_mask[
+                -Coos[key][0]
+                + Masks[roi_id][1] : np.min(
+                    -Coos[key][1] + Masks[roi_id][2], -1
+                ),
+                -Coos[key][2]
+                + Masks[roi_id][3] : np.min(
+                    -Coos[key][3] + Masks[roi_id][4], -1
+                ),
+                -Coos[key][4]
+                + Masks[roi_id][5] : np.min(
+                    -Coos[key][5] + Masks[roi_id][6], -1
+                ),
+            ] = Masks[roi_id][0]
+            crop = np.where(
+                sample_mask,
+                Instance_labels[key],
+                np.zeros_like(Instance_labels),
+            )
+            del sample_mask
+            viewer.add_labels(
+                crop, name="instance labels for ROI" + str(roi_id)
+            )
+            break
+
+
 def display_cfos_bounding_box(name, scan_attempt, ids_key, viewer):
-    """Function to display cFOS cropped to a given bounding box
+    """Function to display cFOS cropped to a continuous region in a given bounding box
 
     Args:
         name (string): name of the mouse
@@ -335,8 +416,6 @@ def display_cfos_bounding_box(name, scan_attempt, ids_key, viewer):
         if table["mouse_name"] == name
     ][0]
 
-    cfos = resize(cfos, [1, 1 / 5, 1])
-
     Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
 
     for key in Masks:
@@ -347,7 +426,7 @@ def display_cfos_bounding_box(name, scan_attempt, ids_key, viewer):
         ]
         sample = cfos_cropped * Masks[key][0]
         viewer.add_image(
-            sample, name="CFOS cropped to bounding box of continuous region"
+            sample, name="CFOS cropped to bounding box of continuous regions"
         )
 
 

@@ -197,8 +197,6 @@ def display_cfos_scan(name, scan_attempt, viewer):
         scan_attempt (int): "id" (unique number) of the pipeline run
         viewer: napari window
     """
-    # Get the shape of the scan
-    shape = get_scan_shape(name, scan_attempt)
     query_reg = spim.Scan() & f"scan_attempt='{scan_attempt}'"
     query_reg = query_reg.fetch(as_dict=True)
     cfos = [
@@ -275,13 +273,12 @@ def display_cropped_roi_instance_labels(
 def display_cropped_continuous_instance_labels(
     name, scan_attempt, ids_key, viewer
 ):
-    """Function to display instance labels cropped to a single ROI id
+    """Function to display instance labels cropped to a continuous region
 
     Args:
         name (string): name of the mouse
         scan attempt (int): "id" (unique number) of the pipeline run
         ids_key (int): id of the list of the ROIs
-        shape: shape of the scan
         viewer: napari window
     """
     shape = get_scan_shape(name, scan_attempt)
@@ -298,6 +295,57 @@ def display_cropped_continuous_instance_labels(
             Instance_labels[key] * Masks[key][0]
         )
     viewer.add_labels(sample, name="instance labels for continuous regions")
+
+
+def display_cropped_continuous_instance_labels_bounding_box(
+    name, scan_attempt, ids_key, viewer
+):
+    """Function to display instance labels cropped to a continuous region (bounding box)
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        ids_key (int): id of the list of the ROIs
+        viewer: napari window
+    """
+    Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
+    Instance_labels = get_instance_labels_dict(name, scan_attempt, ids_key)
+
+    for key in Masks:
+        sample = Instance_labels[key] * Masks[key][0]
+        viewer.add_labels(
+            sample, name="instance labels for continuous regions"
+        )
+
+
+def display_cfos_bounding_box(name, scan_attempt, ids_key, viewer):
+    """Function to display cFOS cropped to a given bounding box
+
+    Args:
+        name (string): name of the mouse
+        scan attempt (int): "id" (unique number) of the pipeline run
+        ids_key (int): id of the list of the ROIs
+        viewer: napari window
+    """
+    query_reg = spim.Scan() & f"scan_attempt='{scan_attempt}'"
+    query_reg = query_reg.fetch(as_dict=True)
+    cfos = [
+        imio.load_any(table["cfos_path"])
+        for table in query_reg
+        if table["mouse_name"] == name
+    ][0]
+    Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
+
+    for key in Masks:
+        cfos_cropped = cfos[
+            Masks[key][1] : Masks[key][2] + 1,
+            Masks[key][3] : Masks[key][4] + 1,
+            Masks[key][5] : Masks[key][6] + 1,
+        ]
+        sample = cfos_cropped * Masks[key][0]
+        viewer.add_labels(
+            sample, name="instance labels for continuous regions"
+        )
 
 
 if __name__ == "__main__":

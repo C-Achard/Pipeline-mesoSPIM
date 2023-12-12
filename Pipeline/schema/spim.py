@@ -66,7 +66,7 @@ class PostProcessing(dj.Manual):
     outline_sigma = 0.7: double
     isotropic_spot_sigma = 0.2: double
     isotropic_outline_sigma = 0.2: double
-    anisotropy_correction = [1,1,1]: longblob
+    anisotropy_correction: longblob
     clear_small_size = 5: int
     clear_large_objects = 500: int
     """

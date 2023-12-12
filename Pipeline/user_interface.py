@@ -784,6 +784,15 @@ def main():
                     break
 
             st.sidebar.write("Populating Mouse table of " + mouse_name)
+
+            print(
+                mouse_name.lower(),
+                mouse_id,
+                date_of_mouse,
+                mouse_sex,
+                mouse_strain,
+            )
+
             mouse = mice.Mouse()
             mouse.insert1(
                 (
@@ -811,6 +820,7 @@ def main():
 
             time_stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+            scan = spim.Scan()
             scan.insert1(
                 (
                     mouse_name.lower(),

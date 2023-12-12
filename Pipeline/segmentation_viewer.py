@@ -92,7 +92,9 @@ def get_cont_reg_masks_dict(name, scan_attempt, ids_key):
     query_reg = query_reg.fetch(as_dict=True)
     Masks = {
         table["cont_region_id"]: [
-            load_npz(table["mask"])
+            load_npz(
+                "/home/cyril/Desktop/Pipeline-mesoSPIM/Pipeline/output_brainreg_chickadee/mask_cont_reg_1_ids_key_0.npz"
+            )
             .toarray()
             .astype("bool")
             .reshape(table["mask_shape"]),

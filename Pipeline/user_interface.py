@@ -179,7 +179,7 @@ def return_all_postprocess(mouse_name, username, scan_attempt):
             table["clear_large_objects"],
         )
         for table in query
-        if table["mouse_name"] == name
+        if table["mouse_name"] == mouse_name
     }
     return list_postprocess
 

@@ -806,8 +806,8 @@ def main():
             )
 
             st.sidebar.write("Populating User table  of " + mouse_name)
-            user = user.User()
-            user.insert1((username, useremail), skip_duplicates=True)
+            mouse_user = user.User()
+            mouse_user.insert1((username, useremail), skip_duplicates=True)
 
             st.sidebar.write("Populating Scan table of " + scan_name)
             scan = spim.Scan()

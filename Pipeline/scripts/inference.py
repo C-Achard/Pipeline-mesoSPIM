@@ -50,6 +50,8 @@ class PostProcessConfig:
     threshold: float = 0.65
     spot_sigma: float = 0.7
     outline_sigma: float = 0.7
+    isotropic_spot_sigma: float = 0.2
+    isotropic_outline_sigma: float = 0.2
     anisotropy_correction: List[
         float
     ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
@@ -128,23 +130,27 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         )
         logger.debug(f"Labels shape: {labels.shape}")
         # get volume stats WITH ANISOTROPY
-        logger.info(
-            f"Getting volume stats with anisotropy correction {config.anisotropy_correction}"
-        )
+        logger.debug(f"NUMBER OF OBJECTS: {np.max(np.unique(labels))-1}")
         stats_not_resized = volume_stats(labels)
-        # resize labels to match original image
+        ######## RUN WITH ANISOTROPY ########
+        logger.info("Resizing image to correct anisotropy")
+        image = resize(image, config.anisotropy_correction)
+        logger.debug(f"Resized image shape: {image.shape}")
+        logger.info("Running labels without anisotropy")
+        labels_resized = voronoi_otsu(
+            image,
+            spot_sigma=config.isotropic_spot_sigma,
+            outline_sigma=config.isotropic_outline_sigma,
+        )
         logger.info(
-            f"Resizing labels with anisotropy correction {config.anisotropy_correction}"
+            f"Clearing small objects with {config.clear_large_objects}"
         )
-        labels_resized = resize(labels, config.anisotropy_correction).astype(
-            np.uint16
-        )
-        logger.debug(f"Resized labels shape: {labels_resized.shape}")
-        # get volume stats WITHOUT ANISOTROPY
-        stats_resized = volume_stats(labels)
-        logger.debug(f"Stats not resized: {stats_not_resized}")
-        logger.debug(f"Stats resized: {stats_resized}")
-        logger.info(f"Done.")
+        labels_resized = clear_small_objects(
+            labels_resized, config.clear_small_size
+        ).astype(np.uint16)
+        logger.info("Getting volume stats without anisotropy")
+        stats_resized = volume_stats(labels_resized)
+
         return {
             "Not resized": {"labels": labels, "stats": stats_not_resized},
             "Resized": {"labels": labels_resized, "stats": stats_resized},

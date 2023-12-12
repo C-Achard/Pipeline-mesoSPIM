@@ -770,7 +770,7 @@ def main():
                 spot_sigma,
                 outline_sigma,
                 None,
-                clear_small_object_size,
+                clear_small_objects_size,
                 clear_large_objects_size,
             )
             attempt_postprocess = 0

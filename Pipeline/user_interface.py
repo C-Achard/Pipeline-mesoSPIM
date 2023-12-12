@@ -920,8 +920,6 @@ def main():
             inst_segmentation = spim.InstanceSegmentation()
             inst_segmentation.populate()
 
-            logger.info(segmentation)
-
             analysis = spim.Analysis()
             analysis.populate()
 

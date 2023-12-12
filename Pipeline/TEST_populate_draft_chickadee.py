@@ -114,8 +114,6 @@ def test_populate():
     test_inst = spim.InstanceSegmentation()
     test_inst.populate()
 
-    logger.info(test_inference)
-
     test_analysis = spim.Analysis()
     test_analysis.populate()
 

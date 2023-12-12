@@ -125,9 +125,9 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         )
         # clear small objects
         logger.info(f"Clearing small objects with {config.clear_small_size}")
-        labels = clear_small_objects(labels, config.clear_small_size).astype(
-            np.uint16
-        )
+        labels = clear_small_objects(
+            labels, config.clear_small_size
+        )  # .astype(np.uint16)
         logger.debug(f"Labels shape: {labels.shape}")
         # get volume stats WITH ANISOTROPY
         logger.debug(f"NUMBER OF OBJECTS: {np.max(np.unique(labels))-1}")
@@ -147,7 +147,10 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         )
         labels_resized = clear_small_objects(
             labels_resized, config.clear_small_size
-        ).astype(np.uint16)
+        )  # .astype(np.uint16)
+        logger.debug(
+            f"NUMBER OF OBJECTS: {np.max(np.unique(labels_resized))-1}"
+        )
         logger.info("Getting volume stats without anisotropy")
         stats_resized = volume_stats(labels_resized)
 

@@ -49,9 +49,6 @@ class PostProcessConfig:
     outline_sigma: float = 0.7
     isotropic_spot_sigma: float = 0.2
     isotropic_outline_sigma: float = 0.2
-    anisotropy_correction: List[
-        float
-    ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
     clear_small_size: int = 5
     clear_large_objects: int = 500
 
@@ -179,7 +176,8 @@ def return_all_postprocess(mouse_name, username, scan_attempt):
             table["threshold"],
             table["spot_sigma"],
             table["outline_sigma"],
-            None,
+            table["isotropic_spot_sigma"],
+            table["isotropic_outline_sigma"],
             table["clear_small_size"],
             table["clear_large_objects"],
         )
@@ -809,7 +807,6 @@ def main():
                 outline_sigma,
                 isotropic_spot_sigma,
                 isotropic_outline_sigma,
-                anisotropy_correction,
                 clear_small_objects_size,
                 clear_large_objects_size,
             )

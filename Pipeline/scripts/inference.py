@@ -137,7 +137,8 @@ def post_processing(
         "labels": labels,
         "stats": stats_not_resized,
     }
-    if not config.anisotropy_correction == [1, 1, 1]:
+
+    if (config.anisotropy_correction == [1, 1, 1]).all():
         logger.info("Resizing image to correct anisotropy")
         image = resize(image, config.anisotropy_correction)
         logger.debug(f"Resized image shape: {image.shape}")

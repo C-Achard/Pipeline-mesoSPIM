@@ -100,8 +100,8 @@ def inference_on_images(
 
 def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
     """Run post-processing on inference results."""
-    if config.anisotropy_correction is None:
-        config.anisotropy_correction = [1, 1, 1 / 5]
+    # if config.anisotropy_correction is None:
+    # config.anisotropy_correction = [1, 1, 1 / 5]
 
     for result in results:
         image = result.semantic_segmentation
@@ -133,31 +133,37 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
         logger.debug(f"NUMBER OF OBJECTS: {np.max(np.unique(labels))-1}")
         stats_not_resized = volume_stats(labels)
         ######## RUN WITH ANISOTROPY ########
-        logger.info("Resizing image to correct anisotropy")
-        image = resize(image, config.anisotropy_correction)
-        logger.debug(f"Resized image shape: {image.shape}")
-        logger.info("Running labels without anisotropy")
-        labels_resized = voronoi_otsu(
-            image,
-            spot_sigma=config.isotropic_spot_sigma,
-            outline_sigma=config.isotropic_outline_sigma,
-        )
-        logger.info(
-            f"Clearing small objects with {config.clear_large_objects}"
-        )
-        labels_resized = clear_small_objects(
-            labels_resized, config.clear_small_size
-        )  # .astype(np.uint16)
-        logger.debug(
-            f"NUMBER OF OBJECTS: {np.max(np.unique(labels_resized))-1}"
-        )
-        logger.info("Getting volume stats without anisotropy")
-        stats_resized = volume_stats(labels_resized)
-
-        return {
-            "Not resized": {"labels": labels, "stats": stats_not_resized},
-            "Resized": {"labels": labels_resized, "stats": stats_resized},
+        result_dict = {}
+        result_dict["Not resized"] = {
+            "labels": labels,
+            "stats": stats_not_resized,
         }
+        if config.anisotropy_correction is not None:
+            logger.info("Resizing image to correct anisotropy")
+            image = resize(image, config.anisotropy_correction)
+            logger.debug(f"Resized image shape: {image.shape}")
+            logger.info("Running labels without anisotropy")
+            labels_resized = voronoi_otsu(
+                image,
+                spot_sigma=config.isotropic_spot_sigma,
+                outline_sigma=config.isotropic_outline_sigma,
+            )
+            logger.info(
+                f"Clearing small objects with {config.clear_large_objects}"
+            )
+            labels_resized = clear_small_objects(
+                labels_resized, config.clear_small_size
+            )  # .astype(np.uint16)
+            logger.debug(
+                f"NUMBER OF OBJECTS: {np.max(np.unique(labels_resized))-1}"
+            )
+            logger.info("Getting volume stats without anisotropy")
+            stats_resized = volume_stats(labels_resized)
+            result_dict["Resized"] = {
+                "labels": labels_resized,
+                "stats": stats_resized,
+            }
+        return result_dict
 
 
 # if __name__ == "__main__":

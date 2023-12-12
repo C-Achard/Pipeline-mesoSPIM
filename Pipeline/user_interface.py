@@ -312,7 +312,7 @@ def main():
                 title = "mouse strain n°" + str(i)
                 if len(tr_mouse_names) == 1:
                     title = "mouse strain"
-                st.text_input(
+                p = st.text_input(
                     title, value=strain, key=i + 4 * len(tr_mouse_names)
                 )
                 mouse_strains.append(p)

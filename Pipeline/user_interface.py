@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 sys.path.append("scripts")
 sys.path.append("schema")
 
-"""
+
 try:
     login.connectToDatabase()
 except Exception as e:
@@ -29,9 +29,8 @@ except Exception as e:
         + "- Contact your network administrator."
     )
     st.stop()
-"""
 
-# from schema import mice, spim, user
+from schema import mice, spim, user
 
 from scripts import brainreg_config, determine_ids, brainreg_utils
 

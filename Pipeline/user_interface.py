@@ -47,7 +47,11 @@ class PostProcessConfig:
     threshold: float = 0.65
     spot_sigma: float = 0.7
     outline_sigma: float = 0.7
-    anisotropy_correction: List[float] = None
+    isotropic_spot_sigma: float = 0.2
+    isotropic_outline_sigma: float = 0.2
+    anisotropy_correction: List[
+        float
+    ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
     clear_small_size: int = 5
     clear_large_objects: int = 500
 
@@ -664,7 +668,7 @@ def main():
             atlas_name=atlas_name, list_global_names=gn
         )
         if rois_ids:
-            bg_atlas = BrainGlobeAtlas(atlas_name, check_latest=False)
+            bg_atlas = BrainGlobeAtlas(atlas_namess)
             df = bg_atlas.lookup_df
             df["name"] = df["name"].str.lower()
             filtered_df = df[df["id"].isin(rois_ids)]
@@ -691,6 +695,32 @@ def main():
     outline_sigma = st.number_input(
         "Outline sigma", value=0.7, step=0.1, format="%f"
     )
+
+    istropic_spot_sigma = st.number_input(
+        "Isotropic spot sigma", value=0.2, step=0.1, format="%f"
+    )
+    isotropic_outline_sigma = st.number_input(
+        "Isotropic outline sigma", value=0.2, step=0.1, format="%f"
+    )
+
+    anisotropy_correction = [1, 1, 1]
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        ax = st.number_input(
+            "Anisotropy correction in x", value=1.00, step=0.01, format="%f"
+        )
+        anisotropy_correction[0] = ax
+    with col2:
+        ay = st.number_input(
+            "Anisotropy correction in y", value=1.00, step=0.01, format="%f"
+        )
+        anisotropy_correction[1] = ay
+    with col3:
+        az = st.number_input(
+            "Anisotropy correction in z", value=1.00, step=0.01, format="%f"
+        )
+        anisotropy_correction[2] = az
+
     clear_small_objects_size = st.number_input(
         "Clear small objects size", value=5, step=1, format="%d"
     )
@@ -777,7 +807,9 @@ def main():
                 threshold,
                 spot_sigma,
                 outline_sigma,
-                None,
+                isotropic_spot_sigma,
+                isotropic_outline_sigma,
+                anisotropy_correction,
                 clear_small_objects_size,
                 clear_large_objects_size,
             )
@@ -861,6 +893,9 @@ def main():
                     threshold,
                     spot_sigma,
                     outline_sigma,
+                    isotropic_spot_sigma,
+                    isotropic_outline_sigma,
+                    anisotropy_correction,
                     clear_small_objects_size,
                     clear_large_objects_size,
                 ),

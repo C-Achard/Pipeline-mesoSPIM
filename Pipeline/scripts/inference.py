@@ -52,11 +52,9 @@ class PostProcessConfig:
     outline_sigma: float = 0.7
     isotropic_spot_sigma: float = 0.2
     isotropic_outline_sigma: float = 0.2
-    anisotropy_correction: List[float] = [
-        1,
-        1,
-        1,
-    ]  # TODO change to actual values, should be a ratio like [1,1/5,1]
+    anisotropy_correction: List[
+        float
+    ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
     clear_small_size: int = 5
     clear_large_objects: int = 500
 

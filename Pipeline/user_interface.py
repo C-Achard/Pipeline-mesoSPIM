@@ -218,12 +218,19 @@ def main():
     if dir == "Give single cFOS and autofluo input files":
         autofluo_scan_path = st.text_input(
             "Autofluo scan path",
-            value=Path("").resolve() / Path("autofluo.tiff"),
+            value=Path(
+                "/data/seb/CFOS_exp/CHICKADEE_Mag1.25x_Tile0_Ch488_Sh0_Rot0.tiff"
+            ).resolve()
+            / Path("autofluo.tiff"),
         )
         cfos_scan_path = st.text_input(
-            "cFOS scan path", value=Path("").resolve() / Path("cfos.tiff")
+            "cFOS scan path",
+            value=Path(
+                "/data/seb/CFOS_exp/CHICKADEE_Mag1.25x_Tile0_Ch561_Sh0_Rot0.tiff"
+            ).resolve()
+            / Path("cfos.tiff"),
         )
-        tr_mouse_names.append("")
+        tr_mouse_names.append("CHICKADEE")
         tr_mouse_ids.append(0)
         tr_date_of_mouses.append("2023-11-11")
         tr_mouse_sexs.append("M")
@@ -232,7 +239,9 @@ def main():
         cfos_paths.append(cfos_scan_path)
 
     else:
-        dir_path = st.text_input("Directory path", value=Path("").resolve())
+        dir_path = st.text_input(
+            "Directory path", value=Path("/data/seb/CFOS_exp").resolve()
+        )
         if Path(dir_path).is_dir():
             files_list = [
                 file.name

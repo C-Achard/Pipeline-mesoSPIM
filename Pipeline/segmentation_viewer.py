@@ -121,7 +121,7 @@ def get_instance_labels_dict(name, scan_attempt, ids_key):
     """
 
     query_instance = (
-        spim.Segmentation()
+        spim.InstanceSegmentation()
         & f"scan_attempt='{scan_attempt}'"
         & f"ids_key='{ids_key}'"
     )

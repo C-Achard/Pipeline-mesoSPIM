@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from typing import List
 import numpy as np
+import logging
 import torch
 from cellseg_utils import InstanceSegmentationWrapper, LogFixture
 from napari_cellseg3d.code_models.instance_segmentation import (
@@ -21,6 +22,9 @@ from napari_cellseg3d.config import (
     SlidingWindowConfig,
 )
 from napari_cellseg3d.utils import resize
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 WINDOW_SIZE = 128
 
@@ -46,6 +50,8 @@ class PostProcessConfig:
     threshold: float = 0.65
     spot_sigma: float = 0.7
     outline_sigma: float = 0.7
+    isotropic_spot_sigma: float = 0.2
+    isotropic_outline_sigma: float = 0.2
     anisotropy_correction: List[
         float
     ] = None  # TODO change to actual values, should be a ratio like [1,1/5,1]
@@ -76,7 +82,7 @@ def inference_on_images(
 
     log = LogFixture()
     worker = InferenceWorker(config)
-    print(f"Worker config: {worker.config}")
+    logger.info(f"Worker config: {worker.config}")
 
     worker.log_signal.connect(log.print_and_log)
     worker.warn_signal.connect(log.warn)
@@ -100,27 +106,53 @@ def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
     for result in results:
         image = result.semantic_segmentation
         # apply threshold to semantic segmentation
+        logger.info(f"Thresholding with {config.threshold}")
         image = threshold(image, config.threshold)
+        logger.debug(f"Thresholded image shape: {image.shape}")
         # remove artifacts by clearing large objects
+        logger.info(
+            f"Clearing large objects with {config.clear_large_objects}"
+        )
         image = clear_large_objects(image, config.clear_large_objects)
         # run instance segmentation
+        logger.info(
+            f"Running instance segmentation with {config.spot_sigma} and {config.outline_sigma}"
+        )
         labels = voronoi_otsu(
             image,
             spot_sigma=config.spot_sigma,
             outline_sigma=config.outline_sigma,
         )
         # clear small objects
-        labels = clear_small_objects(labels, config.clear_small_size).astype(
-            np.uint16
-        )
+        logger.info(f"Clearing small objects with {config.clear_small_size}")
+        labels = clear_small_objects(
+            labels, config.clear_small_size
+        )  # .astype(np.uint16)
+        logger.debug(f"Labels shape: {labels.shape}")
         # get volume stats WITH ANISOTROPY
+        logger.debug(f"NUMBER OF OBJECTS: {np.max(np.unique(labels))-1}")
         stats_not_resized = volume_stats(labels)
-        # resize labels to match original image
-        labels_resized = resize(labels, config.anisotropy_correction).astype(
-            np.uint16
+        ######## RUN WITH ANISOTROPY ########
+        logger.info("Resizing image to correct anisotropy")
+        image = resize(image, config.anisotropy_correction)
+        logger.debug(f"Resized image shape: {image.shape}")
+        logger.info("Running labels without anisotropy")
+        labels_resized = voronoi_otsu(
+            image,
+            spot_sigma=config.isotropic_spot_sigma,
+            outline_sigma=config.isotropic_outline_sigma,
         )
-        # get volume stats WITHOUT ANISOTROPY
-        stats_resized = volume_stats(labels)
+        logger.info(
+            f"Clearing small objects with {config.clear_large_objects}"
+        )
+        labels_resized = clear_small_objects(
+            labels_resized, config.clear_small_size
+        )  # .astype(np.uint16)
+        logger.debug(
+            f"NUMBER OF OBJECTS: {np.max(np.unique(labels_resized))-1}"
+        )
+        logger.info("Getting volume stats without anisotropy")
+        stats_resized = volume_stats(labels_resized)
 
         return {
             "Not resized": {"labels": labels, "stats": stats_not_resized},

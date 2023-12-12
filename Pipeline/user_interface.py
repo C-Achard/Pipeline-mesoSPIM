@@ -673,7 +673,7 @@ def main():
             df["name"] = df["name"].str.lower()
             filtered_df = df[df["id"].isin(rois_ids)]
             st.write("The following areas have been selected")
-            st.dataframe(df)
+            st.dataframe(filtered_df)
     if rois_choice == "Select the whole brain":
         bg_atlas = BrainGlobeAtlas(atlas_name)
         df = bg_atlas.lookup_df
@@ -917,8 +917,11 @@ def main():
             logger.info(brg_results)
 
             st.sidebar.write("Starting segmentation of " + mouse_name)
-            segmentation = spim.Segmentation()
-            segmentation.populate()
+            sem_segmentation = spim.SemanticSegmentation()
+            sem_segmentation.populate()
+
+            inst_segmentation = spim.InstanceSegmentation()
+            inst_segmentation.populate()
 
             logger.info(segmentation)
 

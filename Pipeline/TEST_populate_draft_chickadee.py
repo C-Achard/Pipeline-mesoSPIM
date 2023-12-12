@@ -108,8 +108,11 @@ def test_populate():
 
     logger.info(test_brg_results)
 
-    test_inference = spim.Segmentation()
-    test_inference.populate()
+    test_sem = spim.SemanticSegmentation()
+    test_sem.populate()
+
+    test_inst = spim.InstanceSegmentation()
+    test_inst.populate()
 
     logger.info(test_inference)
 

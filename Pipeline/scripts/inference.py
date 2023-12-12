@@ -24,7 +24,7 @@ from napari_cellseg3d.config import (
 from napari_cellseg3d.utils import resize
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 WINDOW_SIZE = 128
 
@@ -98,84 +98,84 @@ def inference_on_images(
     return results
 
 
-def post_processing(results, config: PostProcessConfig = PostProcessConfig()):
+def post_processing(
+    semantic_segmentation, config: PostProcessConfig = PostProcessConfig()
+):
     """Run post-processing on inference results."""
     # if config.anisotropy_correction is None:
     # config.anisotropy_correction = [1, 1, 1 / 5]
 
-    for result in results:
-        image = result.semantic_segmentation
-        # apply threshold to semantic segmentation
-        logger.info(f"Thresholding with {config.threshold}")
-        image = threshold(image, config.threshold)
-        logger.debug(f"Thresholded image shape: {image.shape}")
-        # remove artifacts by clearing large objects
-        logger.info(
-            f"Clearing large objects with {config.clear_large_objects}"
-        )
-        image = clear_large_objects(image, config.clear_large_objects)
-        # run instance segmentation
-        logger.info(
-            f"Running instance segmentation with {config.spot_sigma} and {config.outline_sigma}"
-        )
-        labels = voronoi_otsu(
+    image = semantic_segmentation
+    # apply threshold to semantic segmentation
+    logger.info(f"Thresholding with {config.threshold}")
+    image = threshold(image, config.threshold)
+    logger.debug(f"Thresholded image shape: {image.shape}")
+    # remove artifacts by clearing large objects
+    logger.info(f"Clearing large objects with {config.clear_large_objects}")
+    image = clear_large_objects(image, config.clear_large_objects)
+    # run instance segmentation
+    logger.info(
+        f"Running instance segmentation with {config.spot_sigma} and {config.outline_sigma}"
+    )
+    labels = voronoi_otsu(
+        image,
+        spot_sigma=config.spot_sigma,
+        outline_sigma=config.outline_sigma,
+    )
+    # clear small objects
+    logger.info(f"Clearing small objects with {config.clear_small_size}")
+    labels = clear_small_objects(labels, config.clear_small_size).astype(
+        np.uint16
+    )
+    logger.debug(f"Labels shape: {labels.shape}")
+    # get volume stats WITH ANISOTROPY
+    logger.debug(f"NUMBER OF OBJECTS: {np.max(np.unique(labels))-1}")
+    stats_not_resized = volume_stats(labels)
+    ######## RUN WITH ANISOTROPY ########
+    result_dict = {}
+    result_dict["Not resized"] = {
+        "labels": labels,
+        "stats": stats_not_resized,
+    }
+    if config.anisotropy_correction is not None:
+        logger.info("Resizing image to correct anisotropy")
+        image = resize(image, config.anisotropy_correction)
+        logger.debug(f"Resized image shape: {image.shape}")
+        logger.info("Running labels without anisotropy")
+        labels_resized = voronoi_otsu(
             image,
-            spot_sigma=config.spot_sigma,
-            outline_sigma=config.outline_sigma,
+            spot_sigma=config.isotropic_spot_sigma,
+            outline_sigma=config.isotropic_outline_sigma,
         )
-        # clear small objects
-        logger.info(f"Clearing small objects with {config.clear_small_size}")
-        labels = clear_small_objects(
-            labels, config.clear_small_size
-        )  # .astype(np.uint16)
-        logger.debug(f"Labels shape: {labels.shape}")
-        # get volume stats WITH ANISOTROPY
-        logger.debug(f"NUMBER OF OBJECTS: {np.max(np.unique(labels))-1}")
-        stats_not_resized = volume_stats(labels)
-        ######## RUN WITH ANISOTROPY ########
-        result_dict = {}
-        result_dict["Not resized"] = {
-            "labels": labels,
-            "stats": stats_not_resized,
+        logger.info(
+            f"Clearing small objects with {config.clear_large_objects}"
+        )
+        labels_resized = clear_small_objects(
+            labels_resized, config.clear_small_size
+        ).astype(np.uint16)
+        logger.debug(
+            f"NUMBER OF OBJECTS: {np.max(np.unique(labels_resized))-1}"
+        )
+        logger.info("Getting volume stats without anisotropy")
+        stats_resized = volume_stats(labels_resized)
+        result_dict["Resized"] = {
+            "labels": labels_resized,
+            "stats": stats_resized,
         }
-        if config.anisotropy_correction is not None:
-            logger.info("Resizing image to correct anisotropy")
-            image = resize(image, config.anisotropy_correction)
-            logger.debug(f"Resized image shape: {image.shape}")
-            logger.info("Running labels without anisotropy")
-            labels_resized = voronoi_otsu(
-                image,
-                spot_sigma=config.isotropic_spot_sigma,
-                outline_sigma=config.isotropic_outline_sigma,
-            )
-            logger.info(
-                f"Clearing small objects with {config.clear_large_objects}"
-            )
-            labels_resized = clear_small_objects(
-                labels_resized, config.clear_small_size
-            )  # .astype(np.uint16)
-            logger.debug(
-                f"NUMBER OF OBJECTS: {np.max(np.unique(labels_resized))-1}"
-            )
-            logger.info("Getting volume stats without anisotropy")
-            stats_resized = volume_stats(labels_resized)
-            result_dict["Resized"] = {
-                "labels": labels_resized,
-                "stats": stats_resized,
-            }
-        return result_dict
+    return result_dict
 
 
-# if __name__ == "__main__":
-#     image = np.random.rand(64, 64, 64)
-#     results = inference_on_images(image)
-#     # see InferenceResult for more info on results so you can populate tables from them
-#     # note that the csv with stats is not saved by default, you need to retrieve it from the results
-#     post_process = post_processing(results)
-#     import napari
-#     viewer = napari.Viewer()
-#     viewer.add_image(image)
-#     viewer.add_image(results[0].semantic_segmentation)
-#     viewer.add_labels(post_process["Not resized"]["labels"])
-#     viewer.add_labels(post_process["Resized"]["labels"])
-#     napari.run()
+if __name__ == "__main__":
+    image = np.random.rand(64, 64, 64)
+    results = inference_on_images(image)
+    # see InferenceResult for more info on results so you can populate tables from them
+    # note that the csv with stats is not saved by default, you need to retrieve it from the results
+    post_process = post_processing(results[0].semantic_segmentation)
+    import napari
+
+    viewer = napari.Viewer()
+    viewer.add_image(image)
+    viewer.add_image(results[0].semantic_segmentation)
+    viewer.add_labels(post_process["Not resized"]["labels"])
+    # viewer.add_labels(post_process["Resized"]["labels"])
+    napari.run()

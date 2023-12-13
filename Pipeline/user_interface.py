@@ -17,7 +17,6 @@ import datetime
 sys.path.append("scripts")
 sys.path.append("schema")
 
-
 try:
     login.connectToDatabase()
 except Exception as e:
@@ -655,7 +654,10 @@ def main():
             atlas_name=atlas_name, list_atlas_names=gn
         )
     if rois_choice == "Give ROI global names (ex, retrosplenial)":
-        strings_input = st.text_input("ROIs", value="Primary motor area")
+        strings_input = st.text_input(
+            "ROIs",
+            value="primary motor area - retrosplenial - primary visual area",
+        )
         gn = []
         if strings_input:
             try:
@@ -671,7 +673,7 @@ def main():
             df["name"] = df["name"].str.lower()
             filtered_df = df.loc[df["id"].isin(rois_ids)]
             st.write("The following areas have been selected")
-            st.dataframe(filtered_df)
+            st.write(filtered_df)
     if rois_choice == "Select the whole brain":
         bg_atlas = BrainGlobeAtlas(atlas_name)
         df = bg_atlas.lookup_df

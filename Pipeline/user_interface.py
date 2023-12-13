@@ -614,7 +614,7 @@ def main():
             )
 
     st.header("Parameters of the user")
-    username = st.text_input("Name", value="cyril")
+    username = st.text_input("Name", value="cyril_tit")
     useremail = st.text_input("Email", value="cyril.achard@epfl.ch")
 
     st.header("Determining the ROIs")

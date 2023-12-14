@@ -1,8 +1,0 @@
-dataclasses-json
-torch
-monai
-numba
-csbdeep
-scikit-image
-dask-image
-einops

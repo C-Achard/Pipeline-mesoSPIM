@@ -275,7 +275,7 @@ def display_cropped_roi_instance_labels(
             del sample_mask
             name_label = "instance labels for ROI n°" + str(roi_id)
             viewer.add_labels(crop, name=name_label)
-            layer = viewer.layers.selection(name_label)
+            layer = viewer.layers[name_label]
             layer.translate = [Coos[key][0], Coos[key][2], Coos[key][4]]
             break
 
@@ -301,7 +301,7 @@ def display_cropped_continuous_instance_labels(
             name=name_label,
         )
 
-        layer = viewer.layers.selection(name_label)
+        layer = viewer.layers[name_label]
         layer.translate = [Masks[key][1], Masks[key][3], Masks[key][5]]
 
 

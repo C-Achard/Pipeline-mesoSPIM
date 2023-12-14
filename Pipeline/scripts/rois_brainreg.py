@@ -95,19 +95,18 @@ class BrainRegions:
         whole_brain = len(roi_ids) > 510
         # Load the atlas
         rAtlas = imio.load_any(registred_atlas_path)
+        rAtlas_regions = brg_utils.rescale_labels(rAtlas, CFOS_shape)
         Masks = {}
         if not whole_brain:
-            rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
+            rAtlas_regions = brg_utils.get_roi_labels(roi_ids, rAtlas_regions)
             # Put the id of every selected region to 1, to extract continuous regions
-            rAtlas[rAtlas != 0] = 1
+            rAtlas_regions[rAtlas_regions != 0] = 1
             # Determinate continuous regions with label from skimage.measure
-            s = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
             rAtlas_regions, num_regions = ndimage.label(
-                rAtlas, structure=ndimage.generate_binary_structure(3, 3)
+                rAtlas_regions,
+                structure=ndimage.generate_binary_structure(3, 3),
             )
-            rAtlas_regions = brg_utils.rescale_labels(
-                rAtlas_regions, CFOS_shape
-            )
+
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)

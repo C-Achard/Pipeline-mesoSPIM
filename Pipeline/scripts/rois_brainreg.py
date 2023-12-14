@@ -5,6 +5,7 @@ import imio
 import numpy as np
 from skimage.measure import label
 from scipy.sparse import csr_matrix
+from scipy import ndimage
 
 
 @dataclass
@@ -31,9 +32,9 @@ class BrainRegions:
         Cont_Masks (dict{roi_id : [sparse matrix, shape of sparse matrix, Coordinates]}): dictionnary of masks for different continuous regions with shape and coordinates
         """
         self.cFOS_shape = imio.load_any(CFOS_path).shape
-        self.ROI_Masks = self.compute_rois(
-            registred_atlas_path, roi_ids, self.cFOS_shape
-        )
+        # self.ROI_Masks = self.compute_rois(
+        # registred_atlas_path, roi_ids, self.cFOS_shape
+        # )
         self.Cont_Masks = self.compute_continuous_regions(
             registred_atlas_path, roi_ids, self.cFOS_shape
         )
@@ -104,7 +105,7 @@ class BrainRegions:
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
             )
-
+            print(np.unique(rAtlas_rois, return_counts=True))
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)

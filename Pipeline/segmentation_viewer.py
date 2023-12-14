@@ -204,8 +204,6 @@ def display_cfos_scan(name, scan_attempt, viewer):
         for table in query_reg
         if table["mouse_name"] == name
     ][0]
-    # rescale the downsampled atlas to the cFOS/sample shape
-    # Display on napari
     viewer.add_image(cfos, name="cFOS scan")
 
 
@@ -256,24 +254,29 @@ def display_cropped_roi_instance_labels(
             and Masks[roi_id][5] >= Coos[key][4]
             and Masks[roi_id][6] <= Coos[key][5]
         ):
-            sample = np.zeros(shape, dtype=np.uint16)
-            sample_mask = np.zeros(shape, dtype=np.uint16)
-            sample[
-                Coos[key][0] : Coos[key][1] + 1,
-                Coos[key][2] : Coos[key][3] + 1,
-                Coos[key][4] : Coos[key][5] + 1,
-            ] = Instance_labels[key]
+            sample_mask = np.zeros_like(Instance_labels[key])
             sample_mask[
-                Masks[roi_id][1] : Masks[roi_id][2] + 1,
-                Masks[roi_id][3] : Masks[roi_id][4] + 1,
-                Masks[roi_id][5] : Masks[roi_id][6] + 1,
+                -Coos[key][0]
+                + Masks[roi_id][1] : np.min(
+                    -Coos[key][1] + Masks[roi_id][2], -1
+                ),
+                -Coos[key][2]
+                + Masks[roi_id][3] : np.min(
+                    -Coos[key][3] + Masks[roi_id][4], -1
+                ),
+                -Coos[key][4]
+                + Masks[roi_id][5] : np.min(
+                    -Coos[key][5] + Masks[roi_id][6], -1
+                ),
             ] = Masks[roi_id][0]
-            crop = np.where(sample_mask, sample, np.zeros_like(sample))
-            del sample
-            del sample_mask
-            viewer.add_labels(
-                crop, name="instance labels for ROI" + str(roi_id)
+            crop = np.where(
+                sample_mask, Instance_labels[key], np.zeros_like(sample_mask)
             )
+            del sample_mask
+            name_label = "instance labels for ROI n°" + str(roi_id)
+            viewer.add_labels(crop, name=name_label)
+            layer = viewer.layers.selection(name_label)
+            layer.translate = [Coos[key][0], Coos[key][2], Coos[key][4]]
             break
 
 
@@ -291,19 +294,14 @@ def display_cropped_continuous_instance_labels(
     shape = get_scan_shape(name, scan_attempt)
     Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
     Instance_labels = get_instance_labels_dict(name, scan_attempt, ids_key)
-
-    sample = np.zeros(shape, dtype=np.uint16)
-    sample[:] = np.nan
     for key in Masks:
-        sample[
-            Masks[key][1] : Masks[key][2] + 1,
-            Masks[key][3] : Masks[key][4] + 1,
-            Masks[key][5] : Masks[key][6] + 1,
-        ] = (
-            Instance_labels[key] * Masks[key][0]
+        viewer.add_labels(
+            Instance_labels[key] * Masks[key][0],
+            name="instance labels for continuous region n°" + str(key),
         )
-    viewer.add_labels(sample, name="instance labels for continuous regions")
-    del sample
+        name_label = "instance labels for continuous region n°" + str(key)
+        layer = viewer.layers.selection(name_label)
+        layer.translate = [Masks[key][1], Masks[key][3], Masks[key][5]]
 
 
 def display_cropped_continuous_instance_labels_bounding_box(

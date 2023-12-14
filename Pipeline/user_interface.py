@@ -810,7 +810,6 @@ def main():
             list_postprocess = return_all_postprocess(
                 mouse_name, username, scan_attempt
             )
-            print(list_postprocess)
             postpro = PostProcessConfig(
                 threshold,
                 spot_sigma,
@@ -820,7 +819,6 @@ def main():
                 clear_small_objects_size,
                 clear_large_objects_size,
             )
-            print(post_pro)
             attempt_postprocess = 0
             list_ids_postpro = []
             find_ids_postpro = False

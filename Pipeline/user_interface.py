@@ -696,7 +696,7 @@ def main():
         "Outline sigma", value=0.7, step=0.1, format="%f"
     )
 
-    istropic_spot_sigma = st.number_input(
+    isotropic_spot_sigma = st.number_input(
         "Isotropic spot sigma", value=0.2, step=0.1, format="%f"
     )
     isotropic_outline_sigma = st.number_input(

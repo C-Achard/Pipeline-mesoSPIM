@@ -796,13 +796,21 @@ def main():
                     scan_attempt = np.max(scan_attempt)
             list_ids = return_all_list(mouse_name, username, scan_attempt)
             attempt_roi = 0
+            list_ids_key = []
+            find_ids_key = False
             for key in list_ids:
                 if compare_lists(list_ids[key], rois_ids):
                     attempt_roi = key
+                    find_ids_key = True
                     break
+                else:
+                    list_ids_key.append(key)
+            if not find_ids_key:
+                attempt_roi = np.max(list_ids_key) + 1
             list_postprocess = return_all_postprocess(
                 mouse_name, username, scan_attempt
             )
+            print(list_postprocess)
             postpro = PostProcessConfig(
                 threshold,
                 spot_sigma,
@@ -812,7 +820,10 @@ def main():
                 clear_small_objects_size,
                 clear_large_objects_size,
             )
+            print(post_pro)
             attempt_postprocess = 0
+            list_ids_postpro = []
+            find_ids_postpro = False
             for key in list_postprocess:
                 if all(
                     getattr(list_postprocess[key], field)
@@ -821,6 +832,10 @@ def main():
                 ):
                     attempt_postprocess = key
                     break
+                else:
+                    list_ids_postpro.append(key)
+            if not find_ids_postpro:
+                attempt_postprocess = np.max(attempt_postprocess) + 1
 
             st.sidebar.write("Populating Mouse table of " + mouse_name)
 

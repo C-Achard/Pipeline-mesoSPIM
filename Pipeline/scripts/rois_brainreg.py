@@ -101,11 +101,12 @@ class BrainRegions:
             # Put the id of every selected region to 1, to extract continuous regions
             rAtlas[rAtlas != 0] = 1
             # Determinate continuous regions with label from skimage.measure
-            rAtlas_regions, num_regions = label(rAtlas, return_num=True)
+            rAtlas_regions, num_regions = ndimage.label(
+                rAtlas, return_num=True
+            )
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
             )
-            print(np.unique(rAtlas_regions, return_counts=True))
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)

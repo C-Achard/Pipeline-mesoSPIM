@@ -673,7 +673,7 @@ def main():
         if rois_ids:
             filtered_df = df.loc[df["id"].isin(rois_ids)]
             st.write("The following areas have been selected")
-            st.write(filtered_df)
+            st.table(filtered_df.astype("str"))
     if rois_choice == "Select the whole brain":
         bg_atlas = BrainGlobeAtlas(atlas_name)
         df = bg_atlas.lookup_df

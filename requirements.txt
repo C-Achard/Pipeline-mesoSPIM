@@ -1,0 +1,4 @@
+datajoint
+git+https://github.com/AdaptiveMotorControlLab/CellSeg3d.git@cy/feedback-fixes
+brainreg
+streamlit

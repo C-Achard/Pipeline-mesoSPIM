@@ -3,10 +3,10 @@ name = "mesoSPIM pipeline"
 readme = "README.md"
 description = "Datajoint pipeline for mesoSPIM data"
 requires-python = ">=3.8"
-#dependencies = [
-#    "datajoint",
-#    "brainreg",
-#]
+dependencies = [
+   "datajoint",
+   "brainreg",
+]
 
 [tool.ruff]
 select = [
@@ -57,6 +57,7 @@ exclude = [
     "docs/conf.py",
     "meso_spim/docs/_build",
     "OLD_meso_spim/",
+    "Pipeline/"
 ]
 # Assume Python 3.8
 target-version = "py38"

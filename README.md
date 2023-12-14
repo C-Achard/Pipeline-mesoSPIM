@@ -32,16 +32,25 @@ See DataJoint docs [here](https://datajoint.com/docs/core/datajoint-python/0.14/
 
 ## TODO:
 Titouan:
-- [ ] Read the docs
-- [ ] Read existing code, discuss parts in need of replacement, ask questions about unclear parts
-- [ ] Replace brainreg code with new, updated version without napari
-- [ ] Add config files loaded to/from json for database storage (see schema/utils/path_dataclass.py)
-- [ ] Create/use brainreg utils to:
-  - [ ] Load brainreg data
-  - [ ] Go from one anatomical space to another (sample <-> atlas) using transformation matrices
-  - [ ] Re-orient the data
-  - [ ] Crop ROIs from brainreg results for cell segmentation
-- [ ] Write a new test populate script for brainreg
+- [x] Read the docs
+- [x] Read existing code, discuss parts in need of replacement, ask questions about unclear parts
+- [x] Replace brainreg code with new, updated version without napari
+- [x] Add config files loaded to/from json for database storage (see schema/utils/path_dataclass.py)
+- [x] Create/use brainreg utils to:
+  - [x] Load brainreg data
+  - [x] Go from one anatomical space to another (sample <-> atlas) using transformation matrices
+  - [x] Re-orient the data
+  - [x] Crop ROIs from brainreg results for cell segmentation
+- [x] Write a new test populate script for brainreg
+- [x] Add auto date and time for scan populate script
+- [x] Add exception handling for streamlit app
+- [x] Add user report (but NOT send email)
+- [ ] Add post-processing for segmentation
+- [x] Add result viewing code
+- [ ] Add possibility to run on several paths
+- [x] Add list of selected regions in Streamlit app
+- [x] Add more verbose output to cropping of resized ROIs in atlas space
 
 Cyril:
-- [ ] Add cell segmentation code
+- [x] Add cell segmentation code
+- [ ] Add post-processing for segmentation

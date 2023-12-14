@@ -151,6 +151,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
+# Mac OS
+.DS_Store
+
 # buit docs
 /OLD_meso_spim/docs/_build/
 /.ruff_cache/
+/test_images/
+*.tif
+src/napari-cellseg3d/
+/Pipeline/docs/_build/
+/Pipeline/login*

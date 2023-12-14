@@ -293,6 +293,7 @@ def display_cropped_continuous_instance_labels(
     Instance_labels = get_instance_labels_dict(name, scan_attempt, ids_key)
 
     sample = np.zeros(shape, dtype=np.uint16)
+    sample[:] = np.nan
     for key in Masks:
         sample[
             Masks[key][1] : Masks[key][2] + 1,
@@ -302,6 +303,7 @@ def display_cropped_continuous_instance_labels(
             Instance_labels[key] * Masks[key][0]
         )
     viewer.add_labels(sample, name="instance labels for continuous regions")
+    del sample
 
 
 def display_cropped_continuous_instance_labels_bounding_box(

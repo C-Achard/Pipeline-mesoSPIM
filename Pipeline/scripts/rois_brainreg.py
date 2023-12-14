@@ -130,9 +130,7 @@ class BrainRegions:
             # Only one continuous region (whole brain)
             num_regions = 1
             # Rescale atlas to the shape of your CFOS image
-            rAtlas_regions = brg_utils.rescale_labels(
-                rAtlas_regions, CFOS_shape
-            )
+            rAtlas_regions = brg_utils.rescale_labels(rAtlas, CFOS_shape)
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)

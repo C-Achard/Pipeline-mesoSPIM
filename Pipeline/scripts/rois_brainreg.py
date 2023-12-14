@@ -102,7 +102,9 @@ class BrainRegions:
             rAtlas[rAtlas != 0] = 1
             # Determinate continuous regions with label from skimage.measure
             s = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-            rAtlas_regions, num_regions = ndimage.label(rAtlas, structure=s)
+            rAtlas_regions, num_regions = ndimage.label(
+                rAtlas, structure=ndimage.generate_binary_structure(3, 3)
+            )
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
             )

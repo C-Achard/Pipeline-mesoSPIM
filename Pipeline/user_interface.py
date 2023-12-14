@@ -807,6 +807,7 @@ def main():
                     list_ids_key.append(key)
             if not find_ids_key:
                 attempt_roi = np.max(list_ids_key) + 1
+            print(attempt_roi)
             list_postprocess = return_all_postprocess(
                 mouse_name, username, scan_attempt
             )

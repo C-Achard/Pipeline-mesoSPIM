@@ -1,3 +1,0 @@
-pre-commit
-jupyter-book
-dataclasses-json

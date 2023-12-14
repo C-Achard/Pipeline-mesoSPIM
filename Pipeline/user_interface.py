@@ -229,7 +229,7 @@ def main():
                 "/data/seb/CFOS_exp/CHICKADEE_Mag1.25x_Tile0_Ch561_Sh0_Rot0.tiff"
             ).resolve(),
         )
-        tr_mouse_names.append("CHICKADEE")
+        tr_mouse_names.append("mouse_chickadee")
         tr_mouse_ids.append(0)
         tr_date_of_mouses.append("2023-11-11")
         tr_mouse_sexs.append("M")

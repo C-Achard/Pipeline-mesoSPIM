@@ -105,7 +105,7 @@ class BrainRegions:
             rAtlas_regions = brg_utils.rescale_labels(
                 rAtlas_regions, CFOS_shape
             )
-            print(np.unique(rAtlas_rois, return_counts=True))
+            print(np.unique(rAtlas_regions, return_counts=True))
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)

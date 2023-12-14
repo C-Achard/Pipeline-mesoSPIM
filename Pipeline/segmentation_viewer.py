@@ -295,11 +295,12 @@ def display_cropped_continuous_instance_labels(
     Masks = get_cont_reg_masks_dict(name, scan_attempt, ids_key)
     Instance_labels = get_instance_labels_dict(name, scan_attempt, ids_key)
     for key in Masks:
+        name_label = "instance labels for continuous region n°" + str(key)
         viewer.add_labels(
             Instance_labels[key] * Masks[key][0],
-            name="instance labels for continuous region n°" + str(key),
+            name=name_label,
         )
-        name_label = "instance labels for continuous region n°" + str(key)
+
         layer = viewer.layers.selection(name_label)
         layer.translate = [Masks[key][1], Masks[key][3], Masks[key][5]]
 

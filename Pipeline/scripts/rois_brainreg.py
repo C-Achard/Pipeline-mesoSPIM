@@ -94,7 +94,7 @@ class BrainRegions:
         whole_brain = len(roi_ids) > 510
         # Load the atlas
         rAtlas = imio.load_any(registred_atlas_path)
-        # Select only regions of interest
+        rAtlas = brg_utils.rescale_labels(rAtlas, CFOS_shape)
         Masks = {}
         if not whole_brain:
             rAtlas = brg_utils.get_roi_labels(roi_ids, rAtlas)
@@ -104,9 +104,7 @@ class BrainRegions:
             rAtlas_regions, num_regions = label(rAtlas, return_num=True)
             # Rescale atlas to the shape of your CFOS image
             print("Rescaling labels")
-            rAtlas_regions = brg_utils.rescale_labels(
-                rAtlas_regions, CFOS_shape
-            )
+
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)
@@ -130,7 +128,7 @@ class BrainRegions:
             # Only one continuous region (whole brain)
             num_regions = 1
             # Rescale atlas to the shape of your CFOS image
-            rAtlas_regions = brg_utils.rescale_labels(rAtlas, CFOS_shape)
+            rAtlas_regions = rAtlas
             for roi_id in range(1, num_regions + 1):
                 print("Creating mask for continuous region " + str(roi_id))
                 mask = np.isin(rAtlas_regions, roi_id)

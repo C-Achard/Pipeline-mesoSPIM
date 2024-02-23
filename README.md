@@ -27,21 +27,3 @@ See DataJoint docs [here](https://datajoint.com/docs/core/datajoint-python/0.14/
 * Open a pull request to merge your branch into `main` as draft
 * Make your changes, ensure they pass pre-commit checks, and commit them to your branch
 * When ready, mark the pull request as ready for review
-
----
-
-## TODO:
-Titouan:
-- [ ] Read the docs
-- [ ] Read existing code, discuss parts in need of replacement, ask questions about unclear parts
-- [ ] Replace brainreg code with new, updated version without napari
-- [ ] Add config files loaded to/from json for database storage (see schema/utils/path_dataclass.py)
-- [ ] Create/use brainreg utils to:
-  - [ ] Load brainreg data
-  - [ ] Go from one anatomical space to another (sample <-> atlas) using transformation matrices
-  - [ ] Re-orient the data
-  - [ ] Crop ROIs from brainreg results for cell segmentation
-- [ ] Write a new test populate script for brainreg
-
-Cyril:
-- [ ] Add cell segmentation code

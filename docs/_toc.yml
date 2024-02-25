@@ -4,7 +4,7 @@
 format: jb-book
 root: welcome
 chapters:
-- file: parameters_brainreg
-- file: datajoint_tables
 - file: pipeline
+- file: datajoint_tables
+- file: parameters_brainreg
 - file: brainreg_atlas_ref

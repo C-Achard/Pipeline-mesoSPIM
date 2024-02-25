@@ -2,6 +2,8 @@
 
 The brain registration algorithm requires a couple of parameters that have to be determined by the user. For this pipeline, the following parameters have to be set:
 
+## Parameters
+
 - **```output_directory```**: path to directory storing the results of the brain registration
 - **```additional_images (optional)```**: list of paths to additional image files to downsample to the same coordinate space
 - **```atlas```**: name of the atlas (ex: allen_mouse_10um)
@@ -24,13 +26,35 @@ The brain registration algorithm requires a couple of parameters that have to be
 - **```histogram_n_bins_floating```**: number of bins used for the generation of the histograms used for the calculation of Normalized Mutual Information on the atlas image.
 - **```histogram_n_bins_reference```**: number of bins used for the generation of the histograms used for the calculation of Normalized Mutual Information on the brain sample image
 
+```{tip}
 For more information about the different parameters used by the registration algorithm of brainreg, visit its [GitHub page](https://github.com/brainglobe/brainreg)
+```
 
-These parameters are the same that have to be set on the napari-plugin of brainreg:
+## About brain orientation
+
+Brain orientation is an especially critical parameter for the brain registration and is encoded using three letters that decribe the orientation of the top-most, left-most and front-most voxels of the brain sample.
+
+```{important}
+ Both the **letter itself** and the **order of the letters** in the string used to describe the orientation matter.
+```
+
+This is described using the following letters:
+
+- **p**/**a** : **posterior/anterior**
+- **s**/**i** : **superior/inferior**
+- **l**/**r** : **left/right**
+
+Examples : "sal" for "superior, anterior, left" or "pir" for "posterior, inferior, right".
+
+To easily check orientation, either use the corresponding button in the brainreg napari plugin, or use the Streamlit GUI to visualize the brain sample and check the orientation.
+
+## Napari plugin
+
+The same parameters have to be set in the napari plugin of brainreg:
 
 ```{figure} ./images/brainreg_param.png
 ---
-name: napari-plugin
+name: napari plugin
 ---
-napari-plugin of brainreg
+Napari plugin for brainreg
 ```
